@@ -48,7 +48,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
                 <configuration>
-                    <useModulePath>false</useModulePath>
+                    <useModulePath>true</useModulePath>
                 </configuration>
             </plugin>
         </plugins>
