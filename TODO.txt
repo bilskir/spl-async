@@ -1,1 +1,6 @@
 Future - maybe change Synchronized to a better option 
+Finish this - awaitMessage, complete
+Do tests for MicroService and MessageBus. 
+
+In awaitMessage it says that "The method should throw the {@link IllegalStateException} in the case  * where {@code m} was *never* registered." (Check if its Never or Not) 
+About the above - need to know if it's could'a would'a should'a

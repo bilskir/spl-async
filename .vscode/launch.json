@@ -6,11 +6,17 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "spl225ass2"
+        },
+        {
+            "type": "java",
             "name": "Launch Java Program",
             "request": "launch",
             "mainClass": "/workspaces/spl-ass2/main.java"
         },
-
         {
             "type": "java",
             "name": "Current File",
