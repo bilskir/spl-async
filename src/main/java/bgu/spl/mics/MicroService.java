@@ -1,5 +1,7 @@
 package bgu.spl.mics;
-
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.LinkedList;
 /**
  * The MicroService is an abstract class that any micro-service in the system
  * must extend. The abstract MicroService class is responsible to get and
@@ -20,6 +22,9 @@ package bgu.spl.mics;
  */
 public abstract class MicroService implements Runnable {
 
+    MessageBus mb;
+    Dictionary<Class<?>,Callback<?>> eventCalls;
+    Dictionary<Class<?>,Callback<?>> broadcastCalls;
     private boolean terminated = false;
     private final String name;
 
@@ -27,8 +32,11 @@ public abstract class MicroService implements Runnable {
      * @param name the micro-service name (used mainly for debugging purposes -
      *             does not have to be unique)
      */
-    public MicroService(String name) {
+    public MicroService(String name,MessageBus mb) {
         this.name = name;
+        this.mb = mb;
+        eventCalls = new Hashtable<Class<?>,Callback<?>>();
+        broadcastCalls = new Hashtable<Class<?>,Callback<?>>();
     }
 
     /**
@@ -53,7 +61,7 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
-        //TODO: implement this.
+	    eventCalls.put(type, callback);
     }
 
     /**
@@ -77,7 +85,7 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
-        //TODO: implement this.
+        broadcastCalls.put(type, callback);
     }
 
     /**
@@ -93,8 +101,7 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        //TODO: implement this.
-        return null; //TODO: delete this line :)
+        return  mb.sendEvent(e);
     }
 
     /**
@@ -121,6 +128,8 @@ public abstract class MicroService implements Runnable {
         //TODO: implement this.
     }
 
+
+    
     /**
      * this method is called once when the event loop starts.
      */
@@ -142,6 +151,10 @@ public abstract class MicroService implements Runnable {
         return name;
     }
 
+    private void register(){
+        mb.register(this);
+    }
+
     /**
      * The entry point of the micro-service. TODO: you must complete this code
      * otherwise you will end up in an infinite loop.
@@ -149,6 +162,7 @@ public abstract class MicroService implements Runnable {
     @Override
     public final void run() {
         initialize();
+        register();
         while (!terminated) {
             System.out.println("NOT IMPLEMENTED!!!"); //TODO: you should delete this line :)
         }
