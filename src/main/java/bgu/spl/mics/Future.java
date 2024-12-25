@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
  * No public constructor is allowed except for the empty constructor.
  */
 public class Future<T> {
-	T result;
-	boolean isResolved;
+	private T result;
+	private boolean isResolved;
 	
 	/**
 	 * This should be the the only public constructor in this class.
@@ -73,7 +73,7 @@ public class Future<T> {
 	public synchronized T get(long timeout, TimeUnit unit) {
 		while (!isDone()){
 			try {
-				wait(unit.convert(timeout, unit));
+				wait(unit.toMillis(timeout));
 			} catch (Exception e) {
 				System.out.println("ERROR - ALIEN DETECTED");
 			}
