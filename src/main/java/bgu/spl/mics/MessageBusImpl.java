@@ -10,6 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
+	private static MessageBusImpl mbInstance = null;
 	private final Dictionary<Class<? extends Event<?>>,BlockingQueue<MicroService>> eventMap;
 	private final Dictionary<Class<? extends Broadcast>,BlockingQueue<MicroService>> broadcastMap;
 	private final Dictionary<MicroService,BlockingQueue<Message>> msQueues;
@@ -22,6 +23,13 @@ public class MessageBusImpl implements MessageBus {
 		broadcastMap = new Hashtable<Class<? extends Broadcast>,BlockingQueue<MicroService>>();  
 		msQueues = new Hashtable<MicroService,BlockingQueue<Message>>();
 		eventFutures = new Hashtable<Event<?>,Future<?>>();
+	}
+
+	public static MessageBusImpl getInstance(){
+		if(mbInstance==null){
+			mbInstance = new MessageBusImpl();
+		}
+		return mbInstance;		
 	}
 
 	    /**
