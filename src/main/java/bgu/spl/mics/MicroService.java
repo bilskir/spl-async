@@ -123,8 +123,6 @@ public abstract class MicroService implements Runnable {
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-        Callback<T> callBack = (Callback<T>) eventCalls.get(e.getClass());
-        callBack.call(result);
         mb.complete(e, result);
     }
 
@@ -167,13 +165,12 @@ public abstract class MicroService implements Runnable {
             
            try {
             Message m = mb.awaitMessage(this);
-            Callback callback = callbacksMap.get(m.getClass());
+            Callback<Message> callback = (Callback<Message>)callbacksMap.get(m.getClass());
             callback.call(m);
-           } catch (InterruptedException e) {
-            // IMPLEMENT THIS?
-           }
 
-          
+           } catch (InterruptedException e) {
+            this.terminate();
+           }
         }
     }
 
