@@ -1,6 +1,8 @@
 package bgu.spl.mics;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -10,18 +12,31 @@ import java.util.concurrent.LinkedBlockingQueue;
  * All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
-	private final Dictionary<Class<? extends Event<?>>,BlockingQueue<MicroService>> eventMap;
-	private final Dictionary<Class<? extends Broadcast>,BlockingQueue<MicroService>> broadcastMap;
-	private final Dictionary<MicroService,BlockingQueue<Message>> msQueues;
-	private final Dictionary<Event<?>,Future<?>> eventFutures;
+	private static MessageBusImpl mbInstance = null;
+	private final Map<Class<? extends Event<?>>,ConcurrentLinkedQueue<MicroService>> eventMap;
+	private final Map<Class<? extends Broadcast>,ConcurrentLinkedQueue<MicroService>> broadcastMap;
+	private final Map<MicroService,BlockingQueue<Message>> msQueues;
+	private final Map<Event<?>,Future<?>> eventFutures;
 
 
 
 	public MessageBusImpl(){
-		eventMap = new Hashtable<Class<? extends Event<?>>,BlockingQueue<MicroService>>();
-		broadcastMap = new Hashtable<Class<? extends Broadcast>,BlockingQueue<MicroService>>();  
-		msQueues = new Hashtable<MicroService,BlockingQueue<Message>>();
-		eventFutures = new Hashtable<Event<?>,Future<?>>();
+		eventMap = new ConcurrentHashMap<Class<? extends Event<?>>,ConcurrentLinkedQueue<MicroService>>();
+		broadcastMap = new ConcurrentHashMap<Class<? extends Broadcast>,ConcurrentLinkedQueue<MicroService>>();  
+		msQueues = new ConcurrentHashMap<MicroService,BlockingQueue<Message>>();
+		eventFutures = new ConcurrentHashMap<Event<?>,Future<?>>();
+	}
+
+	public static MessageBusImpl getInstance(){							// singleton - do not create 2 instances
+		if(mbInstance==null)
+		{
+			synchronized (MessageBusImpl.class){
+				if(mbInstance==null){
+				mbInstance = new MessageBusImpl();
+				}
+			}
+		}
+		return mbInstance;		
 	}
 
 	    /**
@@ -32,25 +47,15 @@ public class MessageBusImpl implements MessageBus {
      * @param m    The subscribing micro-service.
      */
 	@Override
-	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		try {
-			eventMap.get(type).add(m);
-		} catch (NullPointerException e) {
-			eventMap.put(type, new LinkedBlockingQueue<MicroService>());
-			eventMap.get(type).add(m);
-		}
+	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {	// make sure to not override the already existed queue
+		eventMap.computeIfAbsent(type, k -> new ConcurrentLinkedQueue<>()).add(m);
 	}
 
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		try {
-			broadcastMap.get(type).add(m);
-		} catch (NullPointerException e) {
-			broadcastMap.put(type, new LinkedBlockingQueue<MicroService>());
-			broadcastMap.get(type).add(m);
-		}
-
+		broadcastMap.computeIfAbsent(type, k -> new ConcurrentLinkedQueue<>()).add(m);
 	}
+
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
@@ -58,20 +63,22 @@ public class MessageBusImpl implements MessageBus {
 			@SuppressWarnings("unchecked")
 			Future<T> f= (Future<T>) eventFutures.get(e);
 			f.resolve(result);
-			
+			eventFutures.remove(e); // The microservice has a pointer to the future so it wont be collected by the garbage collector
 		} catch (Exception ex) {
 			System.out.println("no such Event!");
+
 		}
 	}
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		for(MicroService m : broadcastMap.get(b)){
-			if(msQueues.get(m)==null){
-				broadcastMap.get(b).remove(m);
-			}
-			else{
-				msQueues.get(m).add(b);
+		Queue<MicroService> subscribers = broadcastMap.get(b.getClass());
+		if (subscribers != null) {
+    		for (MicroService m : subscribers) {
+				BlockingQueue<Message> queue = msQueues.get(m);
+					if (queue != null) {
+						queue.add(b);
+				}
 			}
 		}
 	}
@@ -79,16 +86,30 @@ public class MessageBusImpl implements MessageBus {
 	
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		MicroService m = eventMap.get(e.getClass()).remove();
-		while(msQueues.get(m)== null){
-			m = eventMap.get(e.getClass()).remove();
-		}
-		eventMap.get(e.getClass()).add(m);
+		Queue<MicroService> subscribers = eventMap.get(e.getClass());
+		if (subscribers == null || subscribers.isEmpty()) {
+			return null;
+		}	
 		
+		MicroService m;
+		synchronized(subscribers){
+			m = subscribers.poll();
+			if(m != null){
+				subscribers.add(m);
+			} 
+			else {
+				return null;			
+			}
+		}
+	
 		Future<T> f = new Future<T>();
 		eventFutures.put(e, f);
-		msQueues.get(m).add(e);
-		msQueues.get(m).notify();
+		BlockingQueue<Message> queue = msQueues.get(m);
+		if (queue == null){
+			return null;
+		}
+
+		queue.add(e);
 		return f;
 	}
 
@@ -100,10 +121,24 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void unregister(MicroService m) {
 		msQueues.remove(m);
+
+		for (Queue<MicroService> queue : eventMap.values()) {
+   			queue.remove(m);
+		}
+
+		for (Queue<MicroService> queue : broadcastMap.values()) {
+			queue.remove(m);
+		}
+
 	}
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-			return msQueues.get(m).remove();
+		BlockingQueue<Message> queue = msQueues.get(m);
+		if (queue == null) {
+			throw new IllegalStateException("Microservice not registered: " + m);
+		}
+
+		return queue.take();
 	}
 }
