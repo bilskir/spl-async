@@ -23,7 +23,7 @@ import java.util.LinkedList;
 public abstract class MicroService implements Runnable {
 
     MessageBus mb;
-    Dictionary<Class<? extends Message>,Callback<?>> callbacksMap;
+    Dictionary<Class<? extends Message>,Callback<? extends Message>> callbacksMap;
     private boolean terminated = false;
     private final String name;
 
@@ -31,10 +31,10 @@ public abstract class MicroService implements Runnable {
      * @param name the micro-service name (used mainly for debugging purposes -
      *             does not have to be unique)
      */
-    public MicroService(String name,MessageBus mb) {
+    public MicroService(String name) {
         this.name = name;
-        this.mb = mb;
-        callbacksMap = new Hashtable<Class<? extends Message>,Callback<?>>();
+        this.mb = MessageBusImpl.getInstance();
+        callbacksMap = new Hashtable<Class<? extends Message>,Callback<? extends Message>>();
     }
 
     /**
