@@ -23,8 +23,7 @@ import java.util.LinkedList;
 public abstract class MicroService implements Runnable {
 
     MessageBus mb;
-    Dictionary<Class<?>,Callback<?>> eventCalls;
-    Dictionary<Class<?>,Callback<?>> broadcastCalls;
+    Dictionary<Class<? extends Message>,Callback<? extends Message>> callbacksMap;
     private boolean terminated = false;
     private final String name;
 
@@ -32,11 +31,10 @@ public abstract class MicroService implements Runnable {
      * @param name the micro-service name (used mainly for debugging purposes -
      *             does not have to be unique)
      */
-    public MicroService(String name,MessageBus mb) {
+    public MicroService(String name) {
         this.name = name;
-        this.mb = mb;
-        eventCalls = new Hashtable<Class<?>,Callback<?>>();
-        broadcastCalls = new Hashtable<Class<?>,Callback<?>>();
+        this.mb = MessageBusImpl.getInstance();
+        callbacksMap = new Hashtable<Class<? extends Message>,Callback<? extends Message>>();
     }
 
     /**
@@ -61,7 +59,7 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
-	    eventCalls.put(type, callback);
+	    callbacksMap.put(type, callback);
     }
 
     /**
@@ -85,7 +83,7 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
-        broadcastCalls.put(type, callback);
+        callbacksMap.put(type, callback);
     }
 
     /**
@@ -101,7 +99,7 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        return  mb.sendEvent(e);
+        return mb.sendEvent(e);
     }
 
     /**
@@ -111,7 +109,7 @@ public abstract class MicroService implements Runnable {
      * @param b The broadcast message to send
      */
     protected final void sendBroadcast(Broadcast b) {
-        //TODO: implement this.
+        mb.sendBroadcast(b);
     }
 
     /**
@@ -125,7 +123,7 @@ public abstract class MicroService implements Runnable {
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-        //TODO: implement this.
+        mb.complete(e, result);
     }
 
 
@@ -164,8 +162,21 @@ public abstract class MicroService implements Runnable {
         initialize();
         register();
         while (!terminated) {
-            System.out.println("NOT IMPLEMENTED!!!"); //TODO: you should delete this line :)
+            
+           try {
+            Message m = mb.awaitMessage(this);
+            Callback<Message> callback = (Callback<Message>)callbacksMap.get(m.getClass());
+            callback.call(m);
+
+           } catch (InterruptedException e) {
+            this.terminate();
+           }
         }
     }
+
+    // each micro service has his own thread + operates message loop in a pattern
+    // pattern - each iteration, fetch messag from queue and process
+    // dont nblock for a long time unless there are no messages for it 
+
 
 }

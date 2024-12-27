@@ -4,3 +4,5 @@ Do tests for MicroService and MessageBus.
 
 In awaitMessage it says that "The method should throw the {@link IllegalStateException} in the case  * where {@code m} was *never* registered." (Check if its Never or Not) 
 About the above - need to know if it's could'a would'a should'a
+
+Microservice - public final void run - implenent the catch part if needed.
