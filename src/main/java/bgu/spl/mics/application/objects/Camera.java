@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.objects;
 import java.util.List;
-import java.util.LinkedList;
+import java.util.ArrayList;
+
 /**
  * Represents a camera sensor on the robot.
  * Responsible for detecting objects in the environment.
@@ -17,7 +18,7 @@ public class Camera {
         this.ID = ID;
         this.frequency = frequency;
         this.status = STATUS.UP;
-        this.stampsList = new LinkedList<StampedDetectedObjects>();
+        this.stampsList = new ArrayList<StampedDetectedObjects>();
     }
 
     public Camera(int ID,int frequency, List<StampedDetectedObjects> stamps){
