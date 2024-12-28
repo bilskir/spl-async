@@ -160,7 +160,6 @@ public abstract class MicroService implements Runnable {
     @Override
     public final void run() {
         initialize();
-        register();
         while (!terminated) {
             
            try {
