@@ -6,6 +6,7 @@ import bgu.spl.mics.application.objects.DetectedObject;
 
 public class DetectObjectsEvent implements Event<Boolean> {
     private final List<DetectedObject> objects;
+    
 
     public DetectObjectsEvent(List<DetectedObject> objects) {
         this.objects = objects;

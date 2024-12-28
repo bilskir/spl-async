@@ -7,7 +7,9 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.DetectedObject;
+import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 
@@ -37,18 +39,43 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
+
+        // Tick Broadcast
         subscribeBroadcast(TickBroadcast.class, msg -> {
                 // Binary Search
                 int currentTick = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), msg.getTickNumber());
                 
-                //subsribe to the 3
-
-                if(currentTick != -1){
+                if(currentTick != -1 && camera.getStatus() == STATUS.UP){
                     List<DetectedObject> objects = camera.getStampsList().get(currentTick).getDetectedObjectsList();
-                    Thread.sleep(camera.getFrequency());
-                    sendEvent(new DetectObjectsEvent(objects));
+                    for(DetectedObject object : objects){
+                        if(object.getID() == "ERROR"){
+                            camera.setStatus(STATUS.ERROR);
+                            break;
+                        }
+                    }
                 }
+
+                if(camera.getStatus() == STATUS.ERROR){
+                    sendBroadcast(new CrashedBroadcast(getName()));
+                    terminate();
+                    return;
+                }
+
         });
+        
+        // Terminate Broadcast
+        subscribeBroadcast(TerminatedBroadcast.class, msg -> {
+            camera.setStatus(STATUS.DOWN);
+            terminate();
+        });
+
+        // Crashed Broadcast
+        subscribeBroadcast(CrashedBroadcast.class, msg -> {
+            camera.setStatus(STATUS.DOWN);
+            System.out.println(msg.getSenderName() + "Crashed"); // need to be parsed to json
+            terminate();
+        });
+    
     }
 
 }
