@@ -6,3 +6,6 @@ In awaitMessage it says that "The method should throw the {@link IllegalStateExc
 About the above - need to know if it's could'a would'a should'a
 
 Microservice - public final void run - implenent the catch part if needed.
+
+
+understand what should I get in the Event<T> T paramter
