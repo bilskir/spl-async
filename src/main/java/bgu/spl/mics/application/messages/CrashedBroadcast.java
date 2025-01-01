@@ -9,14 +9,16 @@ import bgu.spl.mics.Broadcast;
 public class CrashedBroadcast implements Broadcast {
 
     private final String senderName;
+    private int crashTime;
 
     /**
      * Constructor for CrashedBroadcast.
      *
      * @param senderName The name of the service that has crashed.
      */
-    public CrashedBroadcast(String senderName) {
+    public CrashedBroadcast(String senderName, int crashTime) {
         this.senderName = senderName;
+        this.crashTime = crashTime;
     }
 
     /**
@@ -26,5 +28,9 @@ public class CrashedBroadcast implements Broadcast {
      */
     public String getSenderName() {
         return senderName;
+    }
+
+    public int getCrashTime() {
+        return crashTime;
     }
 }

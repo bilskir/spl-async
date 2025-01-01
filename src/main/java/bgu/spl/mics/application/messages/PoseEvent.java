@@ -10,6 +10,7 @@ import bgu.spl.mics.Event;
 public class PoseEvent implements Event<Void> {
 
     private final Pose currentPose;
+    
 
     /**
      * Constructor for PoseEvent.
