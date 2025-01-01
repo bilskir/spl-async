@@ -13,14 +13,16 @@ import bgu.spl.mics.application.objects.TrackedObject;
 public class TrackedObjectsEvent implements Event<Boolean> {
 
     private final List<TrackedObject> TrackedObjects;
+    private final int timeSent;
 
     /**
      * Constructor for TrackedObjectsEvent.
      *
      * @param trackedObjects The list of tracked objects to include in this event.
      */
-    public TrackedObjectsEvent(List<TrackedObject> trackedObjects) {
+    public TrackedObjectsEvent(List<TrackedObject> trackedObjects, int timeSent) {
         this.TrackedObjects = trackedObjects;
+        this.timeSent = timeSent;
     }
 
     /**
@@ -30,5 +32,9 @@ public class TrackedObjectsEvent implements Event<Boolean> {
      */
     public List<TrackedObject> getTrackedObjects() {
         return TrackedObjects;
+    }
+
+    public int getTimeSent() {
+        return timeSent;
     }
 }
