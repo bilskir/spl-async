@@ -23,7 +23,6 @@ public class FusionSlam {
     private FusionSlam(){
         this.landmarks = new LinkedList<LandMark>();
         this.poses = new ArrayList<Pose>();
-        this.trackedObjects = new ArrayList<TrackedObject>();
     }
 
     public FusionSlam getInstance(){
