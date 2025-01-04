@@ -21,4 +21,9 @@ public class DetectedObject {
     public String getDescription(){
         return this.description;
     }
+
+    @Override
+    public String toString() {
+        return "DetectedObject{ID='" + ID + "', description='" + description + "'}";
+    }
 }

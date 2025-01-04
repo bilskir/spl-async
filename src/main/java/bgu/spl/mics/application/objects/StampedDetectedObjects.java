@@ -28,5 +28,18 @@ public class StampedDetectedObjects {
         return this.detectedObjects;
     }
 
-
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("StampedDetectedObjects{time=").append(time);
+        sb.append(", detectedObjects=[");
+        for (DetectedObject obj : detectedObjects) {
+            sb.append(obj.toString()).append(", ");
+        }
+        if (!detectedObjects.isEmpty()) {
+            sb.setLength(sb.length() - 2); // Remove the last comma and space
+        }
+        sb.append("]}");
+        return sb.toString();
+    }
 }

@@ -32,4 +32,15 @@ public class Pose {
     public float getYaw() {
         return yaw;
     }
+
+    @Override
+    
+    public String toString() {
+        return "Pose{" +
+                "x=" + x +
+                ", y=" + y +
+                ", yaw=" + yaw +
+                ", time=" + time +
+                '}';
+    }
 }

@@ -22,11 +22,10 @@ public class PoseService extends MicroService {
      *
      * @param gpsimu The GPSIMU object that provides the robot's pose data.
      */
-    public PoseService(GPSIMU gpsimu, int duration) {
+    public PoseService(GPSIMU gpsimu) {
         super("Pose Service");
         this.gpsimu = gpsimu;
         crashTime = -1;
-
     }
 
     /**
@@ -37,6 +36,7 @@ public class PoseService extends MicroService {
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, msg -> {
             int currentTick = msg.getTick();
+            gpsimu.setCurrentTick(currentTick);
 
             for (Pose pose : gpsimu.getPoseList()) {
                 if (pose.getTime() == currentTick) {
@@ -67,6 +67,12 @@ public class PoseService extends MicroService {
            this.crashTime = msg.getCrashTime();
            this.gpsimu.setStatus(STATUS.DOWN);
            this.terminate();
-        });        
+        });
+        
+    }
+
+    @Override
+    public String toString(){
+        return gpsimu.toString();
     }
 }

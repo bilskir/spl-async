@@ -1,14 +1,15 @@
 package bgu.spl.mics.application.services;
+
 import java.util.LinkedList;
 import java.util.List;
 
 import bgu.spl.mics.*;
-import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
@@ -23,20 +24,22 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
 public class CameraService extends MicroService {
     private final Camera camera;
     private int crashTime;
+
     /*
      * Constructor for CameraService.
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
     public CameraService(Camera camera) {
-        super("CameraService" + camera.getID());
+        super(camera.getCameraKey());
         this.camera = camera;
         this.crashTime = -1;
     }
 
     /**
      * Initializes the CameraService.
-     * Registers the service to handle TickBroadcasts and sets up callbacks for sending
+     * Registers the service to handle TickBroadcasts and sets up callbacks for
+     * sending
      * DetectObjectsEvents.
      */
     @Override
@@ -45,70 +48,74 @@ public class CameraService extends MicroService {
             int currentTick = msg.getTick();
 
             int index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
-            if(index != -1){
-                if(camera.checkForError(index)){
+            if (index != -1) {
+                if (camera.checkForError(index)) {
                     camera.setStatus(STATUS.ERROR);
                     sendBroadcast(new CrashedBroadcast(getName(), currentTick));
                     terminate();
-                }
-                else{
-                    camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick), currentTick);
-                    if(camera.getEvent(currentTick) != null){
+                } else {
+                    StatisticalFolder.getInstance()
+                            .addNumDetectedObjects(camera.getStampsList().get(index).getDetectedObjectsList().size());
+                    camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick),
+                            currentTick);
+                    if (camera.getEvent(currentTick) != null) {
                         Future<Boolean> f = sendEvent(camera.getEvent(currentTick));
                     }
                 }
             }
-            if(currentTick >= camera.getCameraDuration()){
+            if (currentTick >= camera.getCameraDuration()) {
                 System.out.println(this.getName() + " is done");
                 camera.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
-                //send log
+                // send log
             }
-            
+
         });
 
-        subscribeBroadcast(TerminatedBroadcast.class, msg -> {  
-            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " terminated");
-            if(msg.getSenderName() == "TimeService"){
+        subscribeBroadcast(TerminatedBroadcast.class, msg -> {
+            System.out.println(this.getName() + "recieved that " + msg.getSenderName() + " terminated");
+            if (msg.getSenderName() == "TimeService") {
                 camera.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
-                //send log
+                // send log
             }
         });
 
         subscribeBroadcast(CrashedBroadcast.class, msg -> {
-            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " crashed");
+            System.out.println(this.getName() + "recieved that " + msg.getSenderName() + " crashed");
             camera.setStatus(STATUS.DOWN);
             crashTime = msg.getCrashTime();
             sendBroadcast(new TerminatedBroadcast(getName()));
-            terminate();  
-            //send log          
+            terminate();
+            // send log
         });
     }
 
-    private int binarySearch(int l, int r, List<StampedDetectedObjects> myList, int target){
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CameraService{");
+        sb.append("camera=").append(camera);
+        sb.append(", crashTime=").append(crashTime);
+        sb.append(", serviceName=").append(getName());
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private int binarySearch(int l, int r, List<StampedDetectedObjects> myList, int target) {
         int foundIndex = -1;
-        while(l <= r && foundIndex == -1){
+        while (l <= r && foundIndex == -1) {
             int m = (l + r) / 2;
             int currentTime = camera.getStampsList().get(m).getTime();
-            if(currentTime < target){
+            if (currentTime < target) {
                 l = m + 1;
-            }
-            else if (currentTime > target){
+            } else if (currentTime > target) {
                 r = m - 1;
-            }
-            else{
+            } else {
                 foundIndex = m;
             }
         }
         return foundIndex;
     }
 }
-
-
-
-
-
-

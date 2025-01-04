@@ -1,9 +1,11 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.StartSimulationEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 
 /**
  * TimeService acts as the global timer for the system, broadcasting TickBroadcast messages
@@ -37,6 +39,7 @@ public class TimeService extends MicroService {
         this.subscribeEvent(StartSimulationEvent.class, (msg)->{
             while(currentTick < duration){
                 currentTick++;
+                StatisticalFolder.getInstance().addSystemRuntime(1);
                 sendBroadcast(new TickBroadcast(duration,currentTick));
                 try {
                     wait(tickTime);
@@ -48,8 +51,13 @@ public class TimeService extends MicroService {
             sendBroadcast(new TerminatedBroadcast(this.getName()));
             this.terminate();
         });
-
-
+        
+        this.subscribeBroadcast(CrashedBroadcast.class, (msg)->{
+            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " crashed");
+            //log
+            sendBroadcast(new TerminatedBroadcast(this.getName()));
+            this.terminate();
+        });
         
 
 

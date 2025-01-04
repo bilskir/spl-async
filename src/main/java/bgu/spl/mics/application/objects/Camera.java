@@ -1,8 +1,14 @@
 package bgu.spl.mics.application.objects;
 import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -12,30 +18,45 @@ import java.util.ArrayList;
 public class Camera {
     private final int ID;
     private final int frequency;
+    private final String cameraKey;
     private STATUS status;
     private final List<StampedDetectedObjects> stampsList;
     private DetectObjectsEvent[] detectObjectsEvents;
     private final int cameraDuration;
 
-
-
-    public Camera(int ID, int frequency){
+    public Camera(int ID, int frequency, String pathString, String cameraKey) {
         this.ID = ID;
         this.frequency = frequency;
+        this.cameraKey = cameraKey;
         this.status = STATUS.UP;
-        this.stampsList = new ArrayList<StampedDetectedObjects>();
-        this.cameraDuration = stampsList.get(stampsList.size() - 1).getTime() + frequency;
-        detectObjectsEvents = new DetectObjectsEvent[cameraDuration + 1];
+        this.stampsList = new ArrayList<>();
+
+        // Parse the JSON file containing stamped detected objects
+        try (FileReader reader = new FileReader(pathString)) {
+            Gson gson = new Gson();
+            JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
+
+            if (jsonObject.has(cameraKey)) {
+                List<List<StampedDetectedObjects>> nestedStampedObjects = gson.fromJson(
+                    jsonObject.getAsJsonArray(cameraKey),
+                    new TypeToken<List<List<StampedDetectedObjects>>>() {}.getType()
+                );
+                // Flatten the nested lists
+                for (List<StampedDetectedObjects> stampedList : nestedStampedObjects) {
+                    this.stampsList.addAll(stampedList);
+                }
+            } else {
+                System.err.println("Camera key not found in the provided JSON: " + cameraKey);
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to read camera data from: " + pathString);
+            e.printStackTrace();
+        }
+
+        this.cameraDuration = stampsList.isEmpty() ? 0 : stampsList.get(stampsList.size() - 1).getTime() + frequency;
+        this.detectObjectsEvents = new DetectObjectsEvent[cameraDuration + 1];
     }
 
-    public Camera(int ID,int frequency, List<StampedDetectedObjects> stamps){
-        this.ID = ID;
-        this.frequency = frequency;
-        this.status = STATUS.UP;
-        this.stampsList = stamps;
-        this.cameraDuration = stampsList.get(stampsList.size() - 1).getTime() + frequency;
-        detectObjectsEvents = new DetectObjectsEvent[cameraDuration + 1];
-    }
 
 
     public int getID(){
@@ -60,6 +81,10 @@ public class Camera {
 
     public List<StampedDetectedObjects> getStampsList(){
         return this.stampsList;
+    }
+
+    public String getCameraKey() {
+        return cameraKey;
     }
 
     /*
@@ -111,6 +136,21 @@ public class Camera {
         return detectObjectsEvents[tick];
     }
 
-
-    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Camera{ID=").append(ID);
+        sb.append(", frequency=").append(frequency);
+        sb.append(", status=").append(status);
+        sb.append(", cameraDuration=").append(cameraDuration);
+        sb.append(", stampsList=[");
+        for (StampedDetectedObjects stamped : stampsList) {
+            sb.append(stamped.toString()).append(", ");
+        }
+        if (!stampsList.isEmpty()) {
+            sb.setLength(sb.length() - 2); // Remove the last comma and space
+        }
+        sb.append("]}");
+        return sb.toString();
+    }
 }
