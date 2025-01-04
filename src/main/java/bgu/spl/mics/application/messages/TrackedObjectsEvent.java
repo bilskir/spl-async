@@ -2,6 +2,7 @@
 package bgu.spl.mics.application.messages;
 
 import java.util.List;
+import java.util.LinkedList;
 import bgu.spl.mics.Event;
 import bgu.spl.mics.application.objects.TrackedObject;
 
@@ -12,7 +13,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
  */
 public class TrackedObjectsEvent implements Event<Boolean> {
 
-    private final List<TrackedObject> TrackedObjects;
+    private final LinkedList<TrackedObject> TrackedObjects;
     private final int timeSent;
 
     /**
@@ -20,7 +21,7 @@ public class TrackedObjectsEvent implements Event<Boolean> {
      *
      * @param trackedObjects The list of tracked objects to include in this event.
      */
-    public TrackedObjectsEvent(List<TrackedObject> trackedObjects, int timeSent) {
+    public TrackedObjectsEvent(LinkedList<TrackedObject> trackedObjects, int timeSent) {
         this.TrackedObjects = trackedObjects;
         this.timeSent = timeSent;
     }
@@ -30,7 +31,7 @@ public class TrackedObjectsEvent implements Event<Boolean> {
      *
      * @return The list of tracked objects.
      */
-    public List<TrackedObject> getTrackedObjects() {
+    public LinkedList<TrackedObject> getTrackedObjects() {
         return TrackedObjects;
     }
 

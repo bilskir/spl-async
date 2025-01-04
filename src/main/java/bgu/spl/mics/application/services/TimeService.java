@@ -36,13 +36,13 @@ public class TimeService extends MicroService {
 
         this.subscribeEvent(StartSimulationEvent.class, (msg)->{
             while(currentTick < duration){
-                sendBroadcast(new TickBroadcast(duration));
+                currentTick++;
+                sendBroadcast(new TickBroadcast(duration,currentTick));
                 try {
                     wait(tickTime);
                 } catch (Exception e) {
                     
                 }
-                currentTick++;
             }
     
             sendBroadcast(new TerminatedBroadcast(this.getName()));

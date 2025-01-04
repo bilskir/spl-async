@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
@@ -14,8 +15,6 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
  */
 public class PoseService extends MicroService {
     private GPSIMU gpsimu;
-    private int currentTick;
-    private final int duration; 
     private int crashTime;
 
     /**
@@ -26,8 +25,6 @@ public class PoseService extends MicroService {
     public PoseService(GPSIMU gpsimu, int duration) {
         super("Pose Service");
         this.gpsimu = gpsimu;
-        this.currentTick = 0;
-        this.duration = duration;
         crashTime = -1;
 
     }
@@ -39,29 +36,31 @@ public class PoseService extends MicroService {
     @Override
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, msg -> {
-            currentTick++;
+            int currentTick = msg.getTick();
 
-            if(currentTick > duration){
-                gpsimu.setStatus(STATUS.DOWN);
-                sendBroadcast(new TerminatedBroadcast(this.getName()));
-                this.terminate();
-            }
-
-            else{
-                sendEvent(new PoseEvent(gpsimu.getPoseList().get(currentTick)));
+            for (Pose pose : gpsimu.getPoseList()) {
+                if (pose.getTime() == currentTick) {
+                    sendEvent(new PoseEvent(pose));
+                    break;
+                }
             }
         });
         
         subscribeBroadcast(TerminatedBroadcast.class, msg -> {
             System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got terminated.");
-            // Add Log
+            if (msg.getSenderName() == "TimeService") {
+                this.gpsimu.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                this.terminate();
+                // log
+            }
         });
 
          subscribeBroadcast(CrashedBroadcast.class, msg -> {
+           System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got crashed.");
            this.crashTime = msg.getCrashTime();
-           this.terminate();
            this.gpsimu.setStatus(STATUS.DOWN);
-           System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " Crashed Bandicoot.");
+           this.terminate();
         });        
     }
 }

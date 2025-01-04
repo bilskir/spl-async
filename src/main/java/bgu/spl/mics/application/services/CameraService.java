@@ -22,21 +22,15 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
  */
 public class CameraService extends MicroService {
     private final Camera camera;
-    private int currentTick;
-    private final int duration;
-    private StampedDetectedObjects[] detectedObjects;
     private int crashTime;
-    /**
+    /*
      * Constructor for CameraService.
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
-    public CameraService(Camera camera,int duration) {
-        super("CameraService");
+    public CameraService(Camera camera) {
+        super("CameraService" + camera.getID());
         this.camera = camera;
-        this.currentTick = 0;
-        this.duration = duration;
-        this.detectedObjects = new StampedDetectedObjects[duration + 1];
         this.crashTime = -1;
     }
 
@@ -48,70 +42,54 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, msg -> {
-            currentTick++;
+            int currentTick = msg.getTick();
 
-            // If the current tick is greater than the duration, terminate the service.
-            if(currentTick > duration){
-                sendBroadcast(new TerminatedBroadcast(this.getName()));
+            if(currentTick > camera.getCameraDuration()){
+                System.out.println(this.getName() + " is done");
                 camera.setStatus(STATUS.DOWN);
-                this.terminate();
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                terminate();
+                //send log
             }
 
             else{
-
-                // Binary search to find the index of the current tick in the stamps list.
-                int i = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
-                if(i != -1){
-                    StampedDetectedObjects objects = camera.getStampsList().get(i);
-                    int index = currentTick + camera.getFrequency();
-                   
-
-                    // If the objects could be added to the LiDAR workers, store them in the detectedObjects array.
-                    if (index < duration + 1) {
-                        detectedObjects[index] = objects;
+                int index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
+                if(index != -1){
+                    if(camera.checkForError(index)){
+                        camera.setStatus(STATUS.ERROR);
+                        sendBroadcast(new CrashedBroadcast(getName(), currentTick));
+                        terminate();
                     }
-                
-                    if(detectedObjects[currentTick] != null){
-                         // If there are detected objects at the current tick and there is a error, send a CrashedBroadcast.
-                        for(DetectedObject object : detectedObjects[currentTick].getDetectedObjectsList()){
-                            if(object.getID() == "ERROR"){
-                                camera.setStatus(STATUS.ERROR);
-                                sendBroadcast(new CrashedBroadcast(this.getName(), currentTick));
-                                terminate();
-                                break;
-                            }
-                        }   
-
-                        // If there is a error, send a CrashedBroadcast.
-                        if(camera.getStatus() == STATUS.UP){
-                            Future<Boolean> f =  this.sendEvent(new DetectObjectsEvent(detectedObjects[currentTick], currentTick));
+                    else{
+                        camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick), currentTick);
+                        if(camera.getEvent(currentTick) != null){
+                            Future<Boolean> f = sendEvent(camera.getEvent(currentTick));
                         }
                     }
                 }
-                
             }
             
-            
-        });
-        
-
-        subscribeBroadcast(TerminatedBroadcast.class, msg -> {
-            System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got terminated.");
         });
 
+        subscribeBroadcast(TerminatedBroadcast.class, msg -> {  
+            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " terminated");
+            if(msg.getSenderName() == "TimeService"){
+                camera.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                terminate();
+                //send log
+            }
+        });
 
-
-        // Handle crashe of other sensors
         subscribeBroadcast(CrashedBroadcast.class, msg -> {
-           crashTime = msg.getCrashTime();
-           terminate();
-           camera.setStatus(STATUS.DOWN);
-           System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " Crashed Bandicoot.");
-           // TODO: Send log until crash time
-           
-        }); 
+            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " crashed");
+            camera.setStatus(STATUS.DOWN);
+            crashTime = msg.getCrashTime();
+            sendBroadcast(new TerminatedBroadcast(getName()));
+            terminate();  
+            //send log          
+        });
     }
-
 
     private int binarySearch(int l, int r, List<StampedDetectedObjects> myList, int target){
         int foundIndex = -1;
