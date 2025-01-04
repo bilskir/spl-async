@@ -22,12 +22,16 @@ public class LandMark {
         this.coordinates = coordinates;
     }
 
-    private String getID(){
+    public String getID(){
         return this.ID;
     }
 
-    private String getDescription(){
+    public String getDescription(){
         return this.description;
+    }
+
+    public List<CloudPoint> getCoordinates(){
+        return this.coordinates;
     }
 }
 

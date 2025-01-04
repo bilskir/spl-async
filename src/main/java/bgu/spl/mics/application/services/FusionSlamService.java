@@ -4,6 +4,7 @@ import java.util.LinkedList;
 
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
@@ -28,26 +29,16 @@ public class FusionSlamService extends MicroService {
 
 
     private final FusionSlam fusionSlam;
-    private final int duration;
-    private Object[] trackedObjects;
-    private Pose[] poses;
-    private int currentTick;
-    private int crashTime;
+    private int sensorsCounter;
+    private int crashTime; 
+  
 
 
-
-    public FusionSlamService(FusionSlam fusionSlam, int duration) {
+    public FusionSlamService(int sensorsCounter) {
         super("FusionSlamService");
-        this.currentTick = 0;
-        this.fusionSlam = fusionSlam;
-        this.duration = duration;
+        fusionSlam = FusionSlam.getInstance();
+        this.sensorsCounter = sensorsCounter;
         this.crashTime = -1;
-        this.poses = new Pose[duration + 1];
-        this.trackedObjects = new Object[duration + 1];
-        for (int i = 0; i < duration + 1; i++) {
-            this.trackedObjects[i] = new LinkedList<TrackedObjectsEvent>();
-        }
-
     }
 
     /**
@@ -57,47 +48,65 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
+        subscribeEvent(PoseEvent.class, msg -> {
+            Pose pose = msg.getCurrentPose();
+            fusionSlam.addPose(pose);
+        });
+
+        subscribeEvent(TrackedObjectsEvent.class, msg -> {
+            LinkedList<TrackedObject> trackedObjects = msg.getTrackedObjects();
+            for(TrackedObject trackedObject : trackedObjects){
+                fusionSlam.addTrackedObject(trackedObject);
+            }
+        });
 
 
         subscribeBroadcast(TickBroadcast.class, msg -> {
-            currentTick++;
- 
-            // If the current tick is greater than the duration, terminate the service.
-            if(currentTick > duration){
-                sendBroadcast(new TerminatedBroadcast(this.getName()));
-                this.terminate();
-            }
-
-            else{
-                
-            }
+            int currentTick = msg.getTick();
+            fusionSlam.calculateMap(currentTick);
         });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        subscribeBroadcast(CrashedBroadcast.class, msg -> {
-            crashTime = msg.getCrashTime();
-            terminate();
-            System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " Crashed Bandicoot.");
-            // TODO: Send log until crash time
-        });
-
 
         subscribeBroadcast(TerminatedBroadcast.class, msg -> {
-            System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got terminated.");
+            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " terminated");
+            if(msg.getSenderName() == "TimeService"){
+                sendBroadcast(new TerminatedBroadcast(this.getName()));
+                terminate();
+                //send log
+            }
+
+            else if(msg.getSenderName().contains("LiDARService") || msg.getSenderName().contains("CameraService")){
+                sensorsCounter--;
+                if(sensorsCounter == 0){
+                    sendBroadcast(new TerminatedBroadcast(this.getName()));
+                    terminate();
+                    //send log
+                }
+            }
         });
 
+        subscribeBroadcast(CrashedBroadcast.class, msg -> {
+            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " crashed");
+            this.crashTime = msg.getCrashTime();
+            sendBroadcast(new TerminatedBroadcast(this.getName()));
+            terminate();
+            //send log
+        });
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

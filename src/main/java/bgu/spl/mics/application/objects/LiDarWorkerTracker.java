@@ -13,20 +13,23 @@ public class LiDarWorkerTracker {
     private final int frequency;
     private STATUS status;
     private final List<TrackedObject> lastTrackedObjects;
+    private final LiDarDataBase dataBase;
 
 
-    public LiDarWorkerTracker(int ID, int frequency){
+    public LiDarWorkerTracker(int ID, int frequency, String filePath){
         this.ID = ID;
         this.frequency = frequency;
         this.status = STATUS.UP;
         this.lastTrackedObjects = new LinkedList<TrackedObject>();
+        this.dataBase = LiDarDataBase.getInstance(filePath);
     }
 
-    public LiDarWorkerTracker(int ID, int frequency, List<TrackedObject> trackedObjects){
+    public LiDarWorkerTracker(int ID, int frequency, List<TrackedObject> trackedObjects, LiDarDataBase dataBase){
         this.ID = ID;
         this.frequency = frequency;
         this.status = STATUS.UP;
         this.lastTrackedObjects = trackedObjects;
+        this.dataBase = dataBase;
     }
     
     public int getID() {
@@ -41,6 +44,10 @@ public class LiDarWorkerTracker {
         return lastTrackedObjects;
     }
 
+    public LiDarDataBase getDataBase() {
+        return dataBase;
+    }
+
     public STATUS getStatus() {
         return status;
     }
@@ -48,16 +55,32 @@ public class LiDarWorkerTracker {
     public void setStatus(STATUS status) {
         this.status = status;
     }
+
+
+    public boolean isError(int time){
+        for(StampedCloudPoints cp : dataBase.getCloudPoints()){
+            if(cp.getTime() == time){
+                if(cp.getID() == "ERROR"){
+                    return true;
+                }
+            }
+
+            if(cp.getTime() > time){
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    public List<CloudPoint> getCoordinates(DetectedObject object, int time){
+        for(StampedCloudPoints cp : dataBase.getCloudPoints()){
+            if(cp.getID() == object.getID() && cp.getTime() == time){
+                return cp.getCloudPoints();
+            }
+        }
+
+        return null;
+    }
     
 }
-
-
-
-
-/*
- * o id: int – The ID of the LiDar.
-o frequency: int – The time interval at which the LiDar sends new events (If the time in the
-Objects is 2 then the LiDarWorker sends it at time 2 + Frequency).
-o status: enum – Up, Down, Error.
-o lastTrackedObjects: List of TrackedObject – The last objects the LiDar tracked.
- */
