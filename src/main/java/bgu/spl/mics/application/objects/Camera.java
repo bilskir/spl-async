@@ -107,6 +107,7 @@ public class Camera {
      * 
      */
     public DetectObjectsEvent getEvent(int tick){
+        StatisticalFolder.getInstance().addNumDetectedObjects(detectObjectsEvents[tick].getStampedDetectedObjects().getDetectedObjectsList().size());
         return detectObjectsEvents[tick];
     }
 

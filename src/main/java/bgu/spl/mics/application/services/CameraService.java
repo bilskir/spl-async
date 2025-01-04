@@ -44,29 +44,26 @@ public class CameraService extends MicroService {
         subscribeBroadcast(TickBroadcast.class, msg -> {
             int currentTick = msg.getTick();
 
-            if(currentTick > camera.getCameraDuration()){
+            int index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
+            if(index != -1){
+                if(camera.checkForError(index)){
+                    camera.setStatus(STATUS.ERROR);
+                    sendBroadcast(new CrashedBroadcast(getName(), currentTick));
+                    terminate();
+                }
+                else{
+                    camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick), currentTick);
+                    if(camera.getEvent(currentTick) != null){
+                        Future<Boolean> f = sendEvent(camera.getEvent(currentTick));
+                    }
+                }
+            }
+            if(currentTick >= camera.getCameraDuration()){
                 System.out.println(this.getName() + " is done");
                 camera.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
                 //send log
-            }
-
-            else{
-                int index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
-                if(index != -1){
-                    if(camera.checkForError(index)){
-                        camera.setStatus(STATUS.ERROR);
-                        sendBroadcast(new CrashedBroadcast(getName(), currentTick));
-                        terminate();
-                    }
-                    else{
-                        camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick), currentTick);
-                        if(camera.getEvent(currentTick) != null){
-                            Future<Boolean> f = sendEvent(camera.getEvent(currentTick));
-                        }
-                    }
-                }
             }
             
         });
