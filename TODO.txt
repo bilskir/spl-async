@@ -1,11 +1,9 @@
-Future - maybe change Synchronized to a better option 
-Finish this - awaitMessage, complete
-Do tests for MicroService and MessageBus. 
+Questions for private lesson 
 
-In awaitMessage it says that "The method should throw the {@link IllegalStateException} in the case  * where {@code m} was *never* registered." (Check if its Never or Not) 
-About the above - need to know if it's could'a would'a should'a
+1. Main Program - whats the flow there? (we didn't parse the jsons yet)
+2. Timing - Review and check if we did it alright? - if we have a crash in once specific sensor, do we expect it to send the crash at the exact time + frequency? .
+can other services process it at a later time? shouldn't it be an issue?
+3. Logs - StatisticalFolder, crashLogs and error handling.
+4. Tests in JUnit
 
-Microservice - public final void run - implenent the catch part if needed.
-
-
-understand what should I get in the Event<T> T paramter
+Tests in JUnit

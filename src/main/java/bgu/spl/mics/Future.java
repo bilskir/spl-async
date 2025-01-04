@@ -1,6 +1,5 @@
 package bgu.spl.mics;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,13 +47,13 @@ public class Future<T> {
 	public synchronized void resolve (T result) {
 		isResolved = true;
 		this.result = result;
-		notify();
+		notifyAll();
 	}
 	
 	/**
      * @return true if this object has been resolved, false otherwise
      */
-	public synchronized boolean isDone() {
+	public boolean isDone() {
 		return isResolved;
 	}
 	

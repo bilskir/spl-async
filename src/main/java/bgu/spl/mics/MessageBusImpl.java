@@ -12,7 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
-	private static MessageBusImpl mbInstance = null;
+	private static MessageBusImpl mbInstance = new MessageBusImpl();;
 	private final Map<Class<? extends Event<?>>,ConcurrentLinkedQueue<MicroService>> eventMap;
 	private final Map<Class<? extends Broadcast>,ConcurrentLinkedQueue<MicroService>> broadcastMap;
 	private final Map<MicroService,BlockingQueue<Message>> msQueues;
@@ -28,14 +28,6 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	public static MessageBusImpl getInstance(){							// singleton - do not create 2 instances
-		if(mbInstance==null)
-		{
-			synchronized (MessageBusImpl.class){
-				if(mbInstance==null){
-				mbInstance = new MessageBusImpl();
-				}
-			}
-		}
 		return mbInstance;		
 	}
 
@@ -74,10 +66,12 @@ public class MessageBusImpl implements MessageBus {
 	public void sendBroadcast(Broadcast b) {
 		Queue<MicroService> subscribers = broadcastMap.get(b.getClass());
 		if (subscribers != null) {
-    		for (MicroService m : subscribers) {
-				BlockingQueue<Message> queue = msQueues.get(m);
-					if (queue != null) {
-						queue.add(b);
+			synchronized(subscribers){
+				for (MicroService m : subscribers) {
+					BlockingQueue<Message> queue = msQueues.get(m);
+						if (queue != null) {
+							queue.add(b);
+					}
 				}
 			}
 		}
@@ -92,7 +86,7 @@ public class MessageBusImpl implements MessageBus {
 		}	
 		
 		MicroService m;
-		synchronized(subscribers){
+		synchronized(e.getClass()){
 			m = subscribers.poll();
 			if(m != null){
 				subscribers.add(m);
@@ -120,16 +114,19 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void unregister(MicroService m) {
-		msQueues.remove(m);
-
-		for (Queue<MicroService> queue : eventMap.values()) {
-   			queue.remove(m);
+		synchronized(eventMap){
+			for (Queue<MicroService> queue : eventMap.values()) {
+				queue.remove(m);
+			}
 		}
-
-		for (Queue<MicroService> queue : broadcastMap.values()) {
-			queue.remove(m);
+		synchronized(broadcastMap){
+			for (Queue<MicroService> queue : broadcastMap.values()) {
+				queue.remove(m);
+			}
 		}
-
+		synchronized(msQueues){
+			msQueues.remove(m);
+		}
 	}
 
 	@Override

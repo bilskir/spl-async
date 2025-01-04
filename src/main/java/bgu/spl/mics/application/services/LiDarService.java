@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedCloudPoints;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
 
 /**
@@ -76,17 +78,20 @@ public class LiDarService extends MicroService {
             int currentTick = msg.getTick();
             
             LinkedList<TrackedObject> trackedObjects = new LinkedList<TrackedObject>();
-            for(TrackedObject object : lidarWorker.getLastTrackedObjects()){
+            Iterator<TrackedObject> iterator = lidarWorker.getLastTrackedObjects().iterator();
+            while(iterator.hasNext()){
+                TrackedObject object = iterator.next();
                 if(object.getTime() <= currentTick){
                     trackedObjects.add(object);
-                    lidarWorker.getLastTrackedObjects().remove(object);
+                    iterator.remove();
                 }
             }
             if(trackedObjects.size() > 0){
                 sendEvent(new TrackedObjectsEvent(trackedObjects, currentTick));
+                StatisticalFolder.getInstance().addNumTrackedObjects(trackedObjects.size());
             }
 
-            if(lidarWorker.getDataBase().getCloudPointsSize() == 0){
+            if(lidarWorker.getDataBase().getCloudPointsSize() == 0 && lidarWorker.getLastTrackedObjects().size() == 0){
                 lidarWorker.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();

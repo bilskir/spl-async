@@ -1,5 +1,14 @@
 package bgu.spl.mics.application;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+
+import bgu.spl.mics.application.jsonClasses.Configuration;
+
 /**
  * The main entry point for the GurionRock Pro Max Ultra Over 9000 simulation.
  * <p>
@@ -17,10 +26,19 @@ public class GurionRockRunner {
      * @param args Command-line arguments. The first argument is expected to be the path to the configuration file.
      */
     public static void main(String[] args) {
-        System.out.println("Hello World!");
-        Future<String> f = micr
         // TODO: Parse configuration file.  
+        String configurationPath = args[0];
+        Gson gson = new Gson(); 
+        try {
+            Configuration configuration = gson.fromJson(new FileReader(configurationPath), Configuration.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // list of threads here
+        
         // TODO: Initialize system components and services.
+
         // TODO: Start the simulation.
+
     }
 }

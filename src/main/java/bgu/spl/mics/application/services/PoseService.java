@@ -41,8 +41,14 @@ public class PoseService extends MicroService {
             for (Pose pose : gpsimu.getPoseList()) {
                 if (pose.getTime() == currentTick) {
                     sendEvent(new PoseEvent(pose));
+                    gpsimu.getPoseList().remove(pose);
                     break;
                 }
+            }
+            if(gpsimu.getPoseList().isEmpty()){
+                this.gpsimu.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                this.terminate();
             }
         });
         

@@ -19,7 +19,7 @@ public class StatisticalFolder {
         this.numLandmarks = 0;
     }
 
-    public StatisticalFolder getInstance(){
+    public static StatisticalFolder getInstance(){
         if(sf == null){
             sf = new StatisticalFolder();
         }
@@ -28,19 +28,35 @@ public class StatisticalFolder {
     }
 
     public int getNumDetectedObjects() {
-        return getInstance().numDetectedObjects;
+        return numDetectedObjects;
     }
 
     public int getNumLandmarks() {
-        return getInstance().numLandmarks;
+        return numLandmarks;
     }
 
     public int getSystemRuntime() {
-        return getInstance().systemRuntime;
+        return systemRuntime;
     }
     
     public int getNumTrackedObjects() {
-        return getInstance().numTrackedObjects;
+        return numTrackedObjects;
     }
 
+
+    public synchronized void addNumDetectedObjects(int num) {
+        numDetectedObjects += num;
+    }
+
+    public synchronized void addNumLandmarks(int num) {
+        numLandmarks += num;
+    }
+
+    public synchronized void addSystemRuntime(int num) {
+        systemRuntime += num;
+    }
+    
+    public synchronized void addNumTrackedObjects(int num) {
+        numTrackedObjects += num;
+    }
 }
