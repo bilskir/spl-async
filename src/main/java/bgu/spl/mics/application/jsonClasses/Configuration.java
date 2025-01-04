@@ -1,123 +1,167 @@
 package bgu.spl.mics.application.jsonClasses;
+
 import java.util.List;
+import com.google.gson.annotations.SerializedName;
 
 public class Configuration {
-    public Cameras Cameras;
-    public LidarWorkers LidarWorkers;
-    public String poseJsonFile;
-    public int TickTime;
-    public int Duration;
+    @SerializedName("Cameras")
+    private Cameras cameras;
 
+    @SerializedName("Lidars")
+    private Lidars lidars;
+
+    @SerializedName("poseJsonFile")
+    private String poseJsonFile;
+
+    @SerializedName("TickTime")
+    private int tickTime;
+
+    @SerializedName("Duration")
+    private int duration;
+
+    // Getters and Setters
     public Cameras getCameras() {
-        return Cameras;
+        return cameras;
     }
-    public LidarWorkers getLidarWorkers() {
-        return LidarWorkers;
+
+    public void setCameras(Cameras cameras) {
+        this.cameras = cameras;
     }
+
+    public Lidars getLidars() {
+        return lidars;
+    }
+
+    public void setLidars(Lidars lidars) {
+        this.lidars = lidars;
+    }
+
     public String getPoseJsonFile() {
         return poseJsonFile;
-    }
-    public int getDuration() {
-        return Duration;
-    }
-    public int getTickTime() {
-        return TickTime;
-    }
-    public void setCameras(Cameras cameras) {
-        Cameras = cameras;
-    }
-
-    public void setDuration(int duration) {
-        Duration = duration;
-    }
-
-    public void setLidarWorkers(LidarWorkers lidarWorkers) {
-        LidarWorkers = lidarWorkers;
     }
 
     public void setPoseJsonFile(String poseJsonFile) {
         this.poseJsonFile = poseJsonFile;
     }
 
-    public void setTickTime(int tickTime) {
-        TickTime = tickTime;
+    public int getTickTime() {
+        return tickTime;
     }
+
+    public void setTickTime(int tickTime) {
+        this.tickTime = tickTime;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
     public static class Cameras {
-        public List<CameraConfiguration> CamerasConfigurations;
-        public String camera_datas_path;
+        @SerializedName("CamerasConfigurations")
+        private List<CameraConfiguration> camerasConfigurations;
 
-        public String getCamera_datas_path() {
-            return camera_datas_path;
-        }
+        @SerializedName("camera_datas_path")
+        private String cameraDatasPath;
+
+        // Getters and Setters
         public List<CameraConfiguration> getCamerasConfigurations() {
-            return CamerasConfigurations;
+            return camerasConfigurations;
         }
 
-        public void setCamera_datas_path(String camera_datas_path) {
-            this.camera_datas_path = camera_datas_path;
-        }
         public void setCamerasConfigurations(List<CameraConfiguration> camerasConfigurations) {
-            CamerasConfigurations = camerasConfigurations;
+            this.camerasConfigurations = camerasConfigurations;
+        }
+
+        public String getCameraDatasPath() {
+            return cameraDatasPath;
+        }
+
+        public void setCameraDatasPath(String cameraDatasPath) {
+            this.cameraDatasPath = cameraDatasPath;
         }
     }
 
     public static class CameraConfiguration {
-        public int id;
-        public int frequency;
-        public String camera_key;
+        private int id;
+        private int frequency;
 
-        public String getCamera_key() {
-            return camera_key;
-        }
-        public int getFrequency() {
-            return frequency;
-        }
+        @SerializedName("camera_key")
+        private String cameraKey;
+
+        // Getters and Setters
         public int getId() {
             return id;
         }
-        public void setCamera_key(String camera_key) {
-            this.camera_key = camera_key;
-        }
-        public void setFrequency(int frequency) {
-            this.frequency = frequency;
-        }
+
         public void setId(int id) {
             this.id = id;
         }
+
+        public int getFrequency() {
+            return frequency;
+        }
+
+        public void setFrequency(int frequency) {
+            this.frequency = frequency;
+        }
+
+        public String getCameraKey() {
+            return cameraKey;
+        }
+
+        public void setCameraKey(String cameraKey) {
+            this.cameraKey = cameraKey;
+        }
     }
 
-    public static class LidarWorkers {
-        public List<LidarConfiguration> LidarConfigurations;
-        public String lidars_data_path;
+    public static class Lidars {
+        @SerializedName("LidarConfigurations")
+        private List<LidarConfiguration> lidarConfigurations;
 
+        @SerializedName("lidars_data_path")
+        private String lidarsDataPath;
+
+        // Getters and Setters
         public List<LidarConfiguration> getLidarConfigurations() {
-            return LidarConfigurations;
+            return lidarConfigurations;
         }
-        public String getLidars_data_path() {
-            return lidars_data_path;
-        }
+
         public void setLidarConfigurations(List<LidarConfiguration> lidarConfigurations) {
-            LidarConfigurations = lidarConfigurations;
+            this.lidarConfigurations = lidarConfigurations;
         }
-        public void setLidars_data_path(String lidars_data_path) {
-            this.lidars_data_path = lidars_data_path;
+
+        public String getLidarsDataPath() {
+            return lidarsDataPath;
+        }
+
+        public void setLidarsDataPath(String lidarsDataPath) {
+            this.lidarsDataPath = lidarsDataPath;
         }
     }
 
     public static class LidarConfiguration {
-        public int id;
-        public int frequency;
-        public int getFrequency() {
-            return frequency;
-        }
+        private int id;
+        private int frequency;
+
+        // Getters and Setters
         public int getId() {
             return id;
         }
-        public void setFrequency(int frequency) {
-            this.frequency = frequency;
-        }
+
         public void setId(int id) {
             this.id = id;
+        }
+
+        public int getFrequency() {
+            return frequency;
+        }
+
+        public void setFrequency(int frequency) {
+            this.frequency = frequency;
         }
     }
 }

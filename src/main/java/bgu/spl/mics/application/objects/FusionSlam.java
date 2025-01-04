@@ -15,20 +15,14 @@ import bgu.spl.mics.application.messages.TrackedObjectsEvent;
  */
 public class FusionSlam {
     
+    private final List<LandMark> landmarks;
+    private final List<Pose> poses;
+    private final ConcurrentHashMap<Integer, Object[]> map;
+
     // Singleton instance holder
     private static class FusionSlamHolder {
         static final FusionSlam fs = new FusionSlam();  
-    }
-
-    private final List<LandMark> landmarks;
-    private final List<Pose> poses;
-    
-
-
-
-
-    private final ConcurrentHashMap<Integer, Object[]> map;
-
+    }    
 
     private FusionSlam(){
         this.landmarks = new LinkedList<LandMark>();
@@ -52,8 +46,6 @@ public class FusionSlam {
     public List<Pose> getPoses() {
         return getInstance().poses;
     }
-
-
 
     /*
      * Add new pose to the global map.
@@ -157,6 +149,7 @@ public class FusionSlam {
         // If landmark does not exist, create a new one
         LandMark newLandmark = new LandMark(object.getID(), object.getDescription(), globalCoordinates);
         landmarks.add(newLandmark);
+        StatisticalFolder.getInstance().addNumLandmarks(1);
     }
 
     /**
