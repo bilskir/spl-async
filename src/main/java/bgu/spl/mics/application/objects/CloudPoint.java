@@ -29,4 +29,7 @@ public class CloudPoint {
     public void setY(double y) {
         this.y = y;
     }
+
+    public String toString() { return "CloudPoint{x=" + x + ", y=" + y + "}"; }
+
 }

@@ -120,6 +120,10 @@ public class LiDarService extends MicroService {
         });
         
     }
+
+    @Override
+    public String toString() { return "LiDarService{lidarWorker=" + lidarWorker + ", crashTime=" + crashTime + "}"; }
+
 }
 
 

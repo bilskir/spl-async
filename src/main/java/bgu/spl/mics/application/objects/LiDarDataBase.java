@@ -1,6 +1,5 @@
 package bgu.spl.mics.application.objects;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -28,13 +27,18 @@ public class LiDarDataBase {
     private static ReadWriteLock lock = new ReentrantReadWriteLock();;
 
     // Use Gson to parse the filePath and add all the cloud points from the file to the list of cloudPoints
-    private LiDarDataBase(String filePath){
-    Gson gson = new Gson();
-    try (FileReader reader = new FileReader(filePath)){
-            Type stampedCloudPointsType = new TypeToken<LinkedList<StampedCloudPoints>>(){}.getType();
-            cloudPoints = gson.fromJson(reader, stampedCloudPointsType);
-        }
-        catch (IOException e){
+    private LiDarDataBase(String filePath) {
+        this.cloudPoints = new LinkedList<>();
+        Gson gson = new Gson();
+        try (FileReader reader = new FileReader(filePath)) {
+            Type listType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
+            List<StampedCloudPoints> loadedPoints = gson.fromJson(reader, listType);
+            if (loadedPoints != null) {
+                cloudPoints.addAll(loadedPoints);
+            }
+            System.out.println("LiDar data loaded successfully: " + cloudPoints.size() + " entries.");
+        } catch (IOException e) {
+            System.err.println("Failed to load LiDar data from: " + filePath);
             e.printStackTrace();
         }
     }
@@ -115,4 +119,7 @@ public class LiDarDataBase {
             lock.readLock().unlock();
         }
     }
+    
+    public String toString() { return "LiDarDataBase{cloudPoints=" + cloudPoints + "}"; }
+
 }
