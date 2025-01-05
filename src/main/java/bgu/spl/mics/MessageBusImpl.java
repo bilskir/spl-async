@@ -3,6 +3,7 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -18,7 +19,7 @@ public class MessageBusImpl implements MessageBus {
 	private final Map<MicroService,BlockingQueue<Message>> msQueues;
 	private final Map<Event<?>,Future<?>> eventFutures;
 
-
+	private CountDownLatch latch;
 
 	public MessageBusImpl(){
 		eventMap = new ConcurrentHashMap<Class<? extends Event<?>>,ConcurrentLinkedQueue<MicroService>>();
@@ -31,6 +32,9 @@ public class MessageBusImpl implements MessageBus {
 		return mbInstance;		
 	}
 
+	public void setLatch(CountDownLatch latch) {
+		this.latch = latch;
+	}
 	    /**
      * Subscribes {@code m} to receive {@link Event}s of type {@code type}.
      * <p>
@@ -80,36 +84,45 @@ public class MessageBusImpl implements MessageBus {
 	
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		Queue<MicroService> subscribers = eventMap.get(e.getClass());
-		if (subscribers == null || subscribers.isEmpty()) {
-			return null;
-		}	
-		
-		MicroService m;
-		synchronized(e.getClass()){
-			m = subscribers.poll();
-			if(m != null){
-				subscribers.add(m);
-			} 
-			else {
-				return null;			
-			}
-		}
-	
-		Future<T> f = new Future<T>();
-		eventFutures.put(e, f);
-		BlockingQueue<Message> queue = msQueues.get(m);
-		if (queue == null){
-			return null;
-		}
+    Queue<MicroService> subscribers = eventMap.get(e.getClass());
+    if (subscribers == null || subscribers.isEmpty()) {
+        System.out.println("No subscribers for event: " + e.getClass().getSimpleName());
+        return null;
+    }
 
-		queue.add(e);
-		return f;
-	}
+    MicroService m;
+    synchronized (e.getClass()) {
+        m = subscribers.poll();
+        if (m != null) {
+            subscribers.add(m);
+        } else {
+            System.out.println("No microservice available to handle event: " + e.getClass().getSimpleName());
+            return null;
+        }
+    }
+
+    Future<T> f = new Future<>();
+    eventFutures.put(e, f);
+
+    BlockingQueue<Message> queue = msQueues.get(m);
+    if (queue == null) {
+        System.out.println("MicroService queue is null for: " + m.getName());
+        return null;
+    }
+
+    queue.add(e);
+    System.out.println("Event sent to: " + m.getName() + ", Event: " + e.getClass().getSimpleName());
+    return f;
+}
+
 
 	@Override
 	public void register(MicroService m) {
+		System.out.println("MicroService: " + m.getName() + "got registered");
 		msQueues.put(m, new LinkedBlockingQueue<Message>());
+		if (latch != null) {
+			latch.countDown();
+		}
 	}
 
 	@Override

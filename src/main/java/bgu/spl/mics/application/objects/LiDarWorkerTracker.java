@@ -1,5 +1,8 @@
 package bgu.spl.mics.application.objects;
 import java.util.List;
+
+import java.util.Iterator;
+
 import java.util.LinkedList;
 
 /**
@@ -24,11 +27,11 @@ public class LiDarWorkerTracker {
         this.dataBase = LiDarDataBase.getInstance(filePath);
     }
 
-    public LiDarWorkerTracker(int ID, int frequency, List<TrackedObject> trackedObjects, LiDarDataBase dataBase){
+    public LiDarWorkerTracker(int ID, int frequency, LiDarDataBase dataBase){
         this.ID = ID;
         this.frequency = frequency;
         this.status = STATUS.UP;
-        this.lastTrackedObjects = trackedObjects;
+        this.lastTrackedObjects = new LinkedList<TrackedObject>();
         this.dataBase = dataBase;
     }
     
@@ -73,14 +76,19 @@ public class LiDarWorkerTracker {
         return false;
     }
 
-    public List<CloudPoint> getCoordinates(DetectedObject object, int time){
-        for(StampedCloudPoints cp : dataBase.getCloudPoints()){
-            if(cp.getID() == object.getID() && cp.getTime() == time){
-                return cp.getCloudPoints();
+    public List<CloudPoint> getCoordinates(DetectedObject object, int time) {
+        synchronized (dataBase.getCloudPoints()) {
+            for (StampedCloudPoints cp : dataBase.getCloudPoints()) {
+                if (cp.getID().equals(object.getID()) && cp.getTime() == time) {
+                    return cp.toCloudPointList();
+                }
             }
         }
-
         return null;
     }
+    
+
+    public String toString() { return "LiDarWorkerTracker{ID=" + ID + ", frequency=" + frequency + ", status=" + status + ", lastTrackedObjects=" + lastTrackedObjects + ", cloudPointsSize=" + dataBase.getCloudPointsSize() + "}"; }
+
     
 }

@@ -48,3 +48,4 @@ bgu/spl/mics/application/jsonClasses/Configuration$LidarConfiguration.class
 bgu/spl/mics/application/services/TimeService.class
 bgu/spl/mics/application/objects/LiDarDataBase$1.class
 bgu/spl/mics/example/services/ExampleBroadcastListenerService.class
+bgu/spl/mics/application/objects/Camera$1.class

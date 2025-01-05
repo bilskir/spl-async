@@ -30,21 +30,19 @@ public class Camera {
         this.cameraKey = cameraKey;
         this.status = STATUS.UP;
         this.stampsList = new ArrayList<>();
-
+    
         // Parse the JSON file containing stamped detected objects
         try (FileReader reader = new FileReader(pathString)) {
             Gson gson = new Gson();
             JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
-
+    
             if (jsonObject.has(cameraKey)) {
-                List<List<StampedDetectedObjects>> nestedStampedObjects = gson.fromJson(
+                // Parse a flat list of StampedDetectedObjects
+                List<StampedDetectedObjects> stampedObjects = gson.fromJson(
                     jsonObject.getAsJsonArray(cameraKey),
-                    new TypeToken<List<List<StampedDetectedObjects>>>() {}.getType()
+                    new TypeToken<List<StampedDetectedObjects>>() {}.getType()
                 );
-                // Flatten the nested lists
-                for (List<StampedDetectedObjects> stampedList : nestedStampedObjects) {
-                    this.stampsList.addAll(stampedList);
-                }
+                this.stampsList.addAll(stampedObjects);
             } else {
                 System.err.println("Camera key not found in the provided JSON: " + cameraKey);
             }
@@ -52,7 +50,7 @@ public class Camera {
             System.err.println("Failed to read camera data from: " + pathString);
             e.printStackTrace();
         }
-
+    
         this.cameraDuration = stampsList.isEmpty() ? 0 : stampsList.get(stampsList.size() - 1).getTime() + frequency;
         this.detectObjectsEvents = new DetectObjectsEvent[cameraDuration + 1];
     }
@@ -97,13 +95,12 @@ public class Camera {
     */
     public boolean addEvent(DetectObjectsEvent event, int tick){
         if(tick + frequency <= cameraDuration){
-            detectObjectsEvents[tick + frequency + 1] = event;
+            detectObjectsEvents[tick + frequency] = event;
             return true;
         }
 
         return false;
     }
-
 
     /*
      * 
@@ -131,10 +128,14 @@ public class Camera {
      * @param tick - the current tick
      * 
      */
-    public DetectObjectsEvent getEvent(int tick){
-        StatisticalFolder.getInstance().addNumDetectedObjects(detectObjectsEvents[tick].getStampedDetectedObjects().getDetectedObjectsList().size());
-        return detectObjectsEvents[tick];
+    public DetectObjectsEvent getEvent(int tick) {
+        if (detectObjectsEvents[tick] != null) {
+            StatisticalFolder.getInstance().addNumDetectedObjects(detectObjectsEvents[tick].getStampedDetectedObjects().getDetectedObjectsList().size());
+            return detectObjectsEvents[tick];
+        }
+        return null;
     }
+    
 
     @Override
     public String toString() {
@@ -151,6 +152,6 @@ public class Camera {
             sb.setLength(sb.length() - 2); // Remove the last comma and space
         }
         sb.append("]}");
-        return sb.toString();
+         return sb.toString();
     }
 }

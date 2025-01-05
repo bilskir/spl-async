@@ -3,19 +3,32 @@ package bgu.spl.mics.application;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
+import bgu.spl.mics.Message;
+import bgu.spl.mics.MessageBus;
+import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.application.jsonClasses.Configuration;
 import bgu.spl.mics.application.jsonClasses.Configuration.CameraConfiguration;
+import bgu.spl.mics.application.jsonClasses.Configuration.LidarConfiguration;
+import bgu.spl.mics.application.messages.StartSimulationEvent;
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.LiDarDataBase;
+import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 import bgu.spl.mics.application.services.CameraService;
+import bgu.spl.mics.application.services.FusionSlamService;
+import bgu.spl.mics.application.services.LiDarService;
 import bgu.spl.mics.application.services.PoseService;
 import bgu.spl.mics.application.services.TimeService;
 
@@ -54,16 +67,17 @@ public class GurionRockRunner {
             String LidarPath = configuration.getLidars().getLidarsDataPath();
             String posePath = configuration.getPoseJsonFile();
             int tickTime = configuration.getTickTime();
-            int duration = configuration.getDuration();
+            int duration = configuration.getDuration(); 
+            int sensorsCounter = 0;
             
             // Initialize services
             TimeService timeService = new TimeService(tickTime, duration);
-
-
+             
             // Initialize GPSIMU and PoseService
             GPSIMU gpsimu = new GPSIMU(posePath);
             PoseService poseService = new PoseService(gpsimu);
-            System.out.println(poseService);
+            sensorsCounter++;
+            // System.out.println(poseService);
 
             // Initialize camera
             List<CameraService> cameraServices = new ArrayList<>();
@@ -71,31 +85,63 @@ public class GurionRockRunner {
                 Camera camera = new Camera(config.getId(), config.getFrequency(),cameraPath,config.getCameraKey());
                 CameraService cameraService = new CameraService(camera);
                 cameraServices.add(cameraService);
-                System.out.println(cameraService.toString());
+                sensorsCounter++;
+                //System.out.println(cameraService.toString());
                 
             }
 
-            // Intialize lidar
+            // Intialize lidars 
+            List<LiDarService> lidarServiceList = new ArrayList<>();
+            LiDarDataBase db = LiDarDataBase.getInstance(LidarPath);
 
-            // // Initialize camera and lidar services based on configuration
-            // configuration.getCameras().getCamerasConfigurations().forEach(cameraConfig -> {
-            //     new Thread(new CameraService(cameraConfig.getId(), cameraPath, cameraConfig.getCameraKey())).start();
-            // });
+            for (LidarConfiguration config : configuration.getLidars().getLidarConfigurations()){
+                LiDarWorkerTracker lidar = new LiDarWorkerTracker(config.getId(), config.getFrequency(), db);
+                LiDarService liDarService = new LiDarService(lidar);
+                lidarServiceList.add(liDarService);
+                sensorsCounter++;
+                //System.out.println(liDarService.toString());;
+            }
+            //System.out.println(db);
 
-            // configuration.getLidars().getLidarConfigurations().forEach(lidarConfig -> {
-            //     new Thread(new LidarWorkerService(lidarConfig.getId(), lidarPath)).start();
-            // });
+            // Initliaze FusionSlam
+            FusionSlamService fusionSlamService = new FusionSlamService(sensorsCounter);    
+            //System.out.println(fusionSlamService.toString());
+            
+            CountDownLatch latch = new CountDownLatch(sensorsCounter + 2);
 
-            // // Start time service and pose service in separate threads
-            // ExecutorService executor = Executors.newFixedThreadPool(2);
-            // executor.execute(new Thread(timeService));
-            // executor.execute(new Thread(poseService));
+            MessageBusImpl.getInstance().setLatch(latch);
+            
+            ExecutorService executor = Executors.newFixedThreadPool(sensorsCounter + 2);
+           
+            for(LiDarService ls : lidarServiceList){
+                executor.execute(ls);
+            }
+            for(CameraService cs : cameraServices){
+                executor.execute(cs);
+            }
+            
+            executor.execute(poseService);
+            executor.execute(fusionSlamService);
+            executor.execute(timeService);
 
-            // // Shutdown executor after simulation
-            // executor.shutdown();
+            latch.await();
 
 
-        } catch (FileNotFoundException e) {
+
+            System.out.println("bla bla");
+            // Send the StartSimulationEvent
+            MessageBusImpl.getInstance().sendEvent(new StartSimulationEvent());
+
+            // Await termination of all services
+            executor.shutdown();
+            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                System.out.println("Executor did not terminate in time. Forcing shutdown...");
+                executor.shutdownNow();
+            }
+
+            System.out.println("Simulation finished successfully.");
+
+        } catch (FileNotFoundException | InterruptedException e) {
             System.err.println("Configuration file not found: " + configurationPath);
             e.printStackTrace();
         } catch (JsonSyntaxException | JsonIOException e) {
@@ -104,6 +150,7 @@ public class GurionRockRunner {
         }   
         // TODO: Initialize system components and services.
 
+        
         // TODO: Start the simulation.
 
     }

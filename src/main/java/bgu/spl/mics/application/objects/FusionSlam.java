@@ -104,7 +104,9 @@ public class FusionSlam {
             if(entry.getKey() <= time){
                 if(entry.getValue() != null && entry.getValue()[0] != null && entry.getValue()[1] != null){
                     for(TrackedObject object : (LinkedList<TrackedObject>) entry.getValue()[1]){
-                        calculatePosition(object, (Pose) entry.getValue()[0]);
+                        if(object.getCoordinates() != null){
+                            calculatePosition(object, (Pose) entry.getValue()[0]);
+                        }
                     }
 
                     entry.getValue()[1] = new LinkedList<TrackedObject>();
@@ -171,22 +173,9 @@ public class FusionSlam {
         return new double[]{globalX, globalY};
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+    @Override
+    public String toString() {
+        return "FusionSlam{landmarks=" + landmarks + ", map=" + map + "}";
+    }
 }
      

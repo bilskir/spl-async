@@ -37,12 +37,14 @@ public class TimeService extends MicroService {
     protected void initialize() {
 
         this.subscribeEvent(StartSimulationEvent.class, (msg)->{
+            System.out.println("Simulation Started!");
+            
             while(currentTick < duration){
                 currentTick++;
                 StatisticalFolder.getInstance().addSystemRuntime(1);
                 sendBroadcast(new TickBroadcast(duration,currentTick));
                 try {
-                    wait(tickTime);
+                    Thread.sleep(tickTime);
                 } catch (Exception e) {
                     
                 }
@@ -57,6 +59,14 @@ public class TimeService extends MicroService {
             //log
             sendBroadcast(new TerminatedBroadcast(this.getName()));
             this.terminate();
+        });
+
+        this.subscribeBroadcast(TerminatedBroadcast.class, (msg) -> {
+            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " terminated");
+            if (msg.getSenderName().contains("FusionSlam")){
+                sendBroadcast(new TerminatedBroadcast(this.getName()));
+                this.terminate();
+            }
         });
         
 
