@@ -87,9 +87,6 @@ public class GurionRockRunner {
             int sensorsCounter = 0;
             JsonObject json = new JsonObject();
 
-            // Initialize services
-            TimeService timeService = new TimeService(tickTime, duration);
-
             // Initialize GPSIMU and PoseService
             GPSIMU gpsimu = new GPSIMU(posePath);
             PoseService poseService = new PoseService(gpsimu);
@@ -123,6 +120,11 @@ public class GurionRockRunner {
             // Initliaze FusionSlam
             FusionSlamService fusionSlamService = new FusionSlamService(sensorsCounter);
             // System.out.println(fusionSlamService.toString());
+
+            
+            // Initialize services
+            TimeService timeService = new TimeService(tickTime, duration);
+
 
             CountDownLatch latch = new CountDownLatch(sensorsCounter + 2);
 
@@ -221,9 +223,5 @@ public class GurionRockRunner {
             System.err.println("Failed to parse configuration file.");
             e.printStackTrace();
         }
-        // TODO: Initialize system components and services.
-
-        // TODO: Start the simulation.
-
     }
 }
