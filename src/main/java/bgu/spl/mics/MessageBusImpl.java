@@ -71,7 +71,10 @@ public class MessageBusImpl implements MessageBus {
 		Queue<MicroService> subscribers = broadcastMap.get(b.getClass());
 		if (subscribers != null) {
 			synchronized(subscribers){
+
 				for (MicroService m : subscribers) {
+				    // System.out.println("Broadcast sent to: " + m.getName() + ", Broadcast: " + b.getClass().getSimpleName());
+
 					BlockingQueue<Message> queue = msQueues.get(m);
 						if (queue != null) {
 							queue.add(b);
@@ -111,7 +114,7 @@ public class MessageBusImpl implements MessageBus {
     }
 
     queue.add(e);
-    System.out.println("Event sent to: " + m.getName() + ", Event: " + e.getClass().getSimpleName());
+    // System.out.println("Event sent to: " + m.getName() + ", Event: " + e.getClass().getSimpleName());
     return f;
 }
 

@@ -1,59 +1,67 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Holds statistical information about the system's operation.
  * This class aggregates metrics such as the runtime of the system,
  * the number of objects detected and tracked, and the number of landmarks identified.
  */
 public class StatisticalFolder {
-    private static StatisticalFolder sf = new StatisticalFolder();
-    private int systemRuntime;
-    private int numTrackedObjects;
-    private int numDetectedObjects;
-    private int numLandmarks;
 
-    private StatisticalFolder(){
-        this.systemRuntime = 0;
-        this.numDetectedObjects = 0;
-        this.numTrackedObjects = 0;
-        this.numLandmarks = 0;
+    // Singleton instance
+    private static final StatisticalFolder sf = new StatisticalFolder();
+
+    // Using AtomicInteger for thread-safe counters
+    private final AtomicInteger systemRuntime;
+    private final AtomicInteger numTrackedObjects;
+    private final AtomicInteger numDetectedObjects;
+    private final AtomicInteger numLandmarks;
+
+    private StatisticalFolder() {
+        this.systemRuntime = new AtomicInteger(0);
+        this.numDetectedObjects = new AtomicInteger(0);
+        this.numTrackedObjects = new AtomicInteger(0);
+        this.numLandmarks = new AtomicInteger(0);
     }
 
-    public static StatisticalFolder getInstance(){
-
+    // Singleton getter
+    public static StatisticalFolder getInstance() {
         return sf;
     }
 
+    // Getters for counters
     public int getNumDetectedObjects() {
-        return numDetectedObjects;
+        return numDetectedObjects.get();
     }
 
     public int getNumLandmarks() {
-        return numLandmarks;
+        return numLandmarks.get();
     }
 
     public int getSystemRuntime() {
-        return systemRuntime;
+        return systemRuntime.get();
     }
-    
+
     public int getNumTrackedObjects() {
-        return numTrackedObjects;
+        return numTrackedObjects.get();
     }
 
-
-    public synchronized void addNumDetectedObjects(int num) {
-        numDetectedObjects += num;
+    // Methods to increment counters
+    public void addNumDetectedObjects(int num) {
+        System.out.println("Adding detected objects: " + num);
+        numDetectedObjects.addAndGet(num);
     }
 
-    public synchronized void addNumLandmarks(int num) {
-        numLandmarks += num;
+    public void addNumLandmarks(int num) {
+        numLandmarks.addAndGet(num);
     }
 
-    public synchronized void addSystemRuntime(int num) {
-        systemRuntime += num;
+    public void addSystemRuntime(int num) {
+        systemRuntime.addAndGet(num);
     }
-    
-    public synchronized void addNumTrackedObjects(int num) {
-        numTrackedObjects += num;
+
+    public void addNumTrackedObjects(int num) {
+        numTrackedObjects.addAndGet(num);
     }
 }
