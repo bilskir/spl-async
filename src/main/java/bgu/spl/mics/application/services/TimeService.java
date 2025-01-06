@@ -58,7 +58,7 @@ public class TimeService extends MicroService {
         // Listen for TerminatedBroadcast
         this.subscribeBroadcast(TerminatedBroadcast.class, (msg) -> {
             System.out.println(this.getName() + " received that " + msg.getSenderName() + " terminated");
-            if (msg.getSenderName().contains("FusionSlam")) {
+            if (msg.getSenderName().contains("FusionSlamService") || msg.getSenderName().contains(getName())) {
                 stopTickLoop();
             }
         });
@@ -80,6 +80,7 @@ public class TimeService extends MicroService {
                 break;
             }
         }
+
 
         // Send termination signal when the tick loop ends
         sendBroadcast(new TerminatedBroadcast(this.getName()));
