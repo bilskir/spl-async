@@ -32,6 +32,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
 public class LiDarService extends MicroService {
     private final LiDarWorkerTracker lidarWorker;
     private int crashTime;
+    private List<TrackedObject> lastFrame;
 
 
     /**
@@ -88,6 +89,7 @@ public class LiDarService extends MicroService {
             }
             if(trackedObjects.size() > 0){
                 sendEvent(new TrackedObjectsEvent(trackedObjects, currentTick));
+                lastFrame = new LinkedList<>(trackedObjects);
                 StatisticalFolder.getInstance().addNumTrackedObjects(trackedObjects.size());
             }
 
@@ -119,6 +121,14 @@ public class LiDarService extends MicroService {
             //send log          
         });
         
+    }
+
+    public List<TrackedObject> getLastFrame() {
+        return lastFrame;
+    }
+
+    public LiDarWorkerTracker getLidarWorker() {
+        return lidarWorker;
     }
 
     @Override

@@ -66,7 +66,6 @@ public class FusionSlam {
             objects[0] = pose;
             map.put(pose.getTime(), objects);
         }
-
     }
 
     /*

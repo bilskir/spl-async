@@ -23,6 +23,8 @@ public class Camera {
     private final List<StampedDetectedObjects> stampsList;
     private DetectObjectsEvent[] detectObjectsEvents;
     private final int cameraDuration;
+    private String errorDescription;
+    private StampedDetectedObjects lastFrame;
 
     public Camera(int ID, int frequency, String pathString, String cameraKey) {
         this.ID = ID;
@@ -30,6 +32,8 @@ public class Camera {
         this.cameraKey = cameraKey;
         this.status = STATUS.UP;
         this.stampsList = new ArrayList<>();
+        this.errorDescription = "";
+        lastFrame = null;
     
         // Parse the JSON file containing stamped detected objects
         try (FileReader reader = new FileReader(pathString)) {
@@ -85,6 +89,14 @@ public class Camera {
         return cameraKey;
     }
 
+    public synchronized void setLastFrame(StampedDetectedObjects lastFrame) {
+        this.lastFrame = new StampedDetectedObjects(lastFrame.getTime(),lastFrame.getDetectedObjectsList());
+    }
+
+    public synchronized StampedDetectedObjects getLastFrame() {
+        return lastFrame;
+    }
+
     /*
     * When getting a tick add event to coressponding execution time (tick + camera frequency)
     * 
@@ -113,9 +125,10 @@ public class Camera {
      */
     public boolean checkForError(int tick){
         for(DetectedObject object : stampsList.get(tick).getDetectedObjectsList()){
-           if(object.getID() == "ERROR"){
-               return true;
-           }
+            if(object.getID().equals("ERROR")){
+                errorDescription = object.getDescription();      
+                return true;
+            }
         }
 
         return false;
@@ -136,6 +149,9 @@ public class Camera {
         return null;
     }
     
+    public String getErrorDescription() {
+        return errorDescription;
+    }
 
     @Override
     public String toString() {

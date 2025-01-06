@@ -24,6 +24,8 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
 public class CameraService extends MicroService {
     private final Camera camera;
     private int crashTime;
+    private int numberOfObjects;
+
 
     /*
      * Constructor for CameraService.
@@ -34,6 +36,7 @@ public class CameraService extends MicroService {
         super(camera.getCameraKey());
         this.camera = camera;
         this.crashTime = -1;
+        this.numberOfObjects = 0;
     }
 
     /**
@@ -46,20 +49,32 @@ public class CameraService extends MicroService {
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, msg -> {
             int currentTick = msg.getTick();
-
+            System.out.println(this.getName() + " recieved tick " + currentTick);
             int index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
+            // int index = -1;
+            // for (int i = 0; i < camera.getStampsList().size(); i++) {
+            //     if (camera.getStampsList().get(i).getTime() == currentTick) {
+            //         index = i;
+            //         System.err.println(i);
+            //         break;
+            //     }
+            // }
             if (index != -1) {
                 if (camera.checkForError(index)) {
                     camera.setStatus(STATUS.ERROR);
                     sendBroadcast(new CrashedBroadcast(getName(), currentTick));
                     terminate();
                 } else {
-                    StatisticalFolder.getInstance()
-                            .addNumDetectedObjects(camera.getStampsList().get(index).getDetectedObjectsList().size());
+                    //numberOfObjects += camera.getStampsList().get(index).getDetectedObjectsList().size();
+                    System.out.println(camera.getStampsList().get(index).getDetectedObjectsList().size());
+                    
                     camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick),
-                            currentTick);
+                    currentTick);
                     if (camera.getEvent(currentTick) != null) {
-                        Future<Boolean> f = sendEvent(camera.getEvent(currentTick));
+                        Future<Boolean> f = sendEvent(camera.getEvent(currentTick)); 
+                        StampedDetectedObjects object = camera.getEvent(currentTick).getStampedDetectedObjects();
+                        camera.setLastFrame(object);
+                        StatisticalFolder.getInstance().addNumDetectedObjects(camera.getStampsList().get(index).getDetectedObjectsList().size());
                     }
                 }
             }
@@ -102,6 +117,12 @@ public class CameraService extends MicroService {
         sb.append("}");
         return sb.toString();
     }
+
+    public Camera getCamera() {
+        return camera;
+    }
+
+
 
     private int binarySearch(int l, int r, List<StampedDetectedObjects> myList, int target) {
         int foundIndex = -1;

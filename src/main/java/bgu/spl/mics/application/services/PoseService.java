@@ -1,5 +1,8 @@
 package bgu.spl.mics.application.services;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.GPSIMU;
@@ -15,7 +18,8 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
  */
 public class PoseService extends MicroService {
     private GPSIMU gpsimu;
-    private int crashTime;
+    private Integer crashTime;
+    private List<Pose> poseList;
 
     /**
      * Constructor for PoseService.
@@ -26,6 +30,7 @@ public class PoseService extends MicroService {
         super("Pose Service");
         this.gpsimu = gpsimu;
         crashTime = -1;
+        poseList = new LinkedList<>();
     }
 
     /**
@@ -41,6 +46,7 @@ public class PoseService extends MicroService {
             for (Pose pose : gpsimu.getPoseList()) {
                 if (pose.getTime() == currentTick) {
                     sendEvent(new PoseEvent(pose));
+                    poseList.add(pose);
                     gpsimu.getPoseList().remove(pose);
                     break;
                 }
@@ -69,6 +75,18 @@ public class PoseService extends MicroService {
            this.terminate();
         });
         
+    }
+
+    public List<Pose> getPoseList() {
+        return poseList;
+    }
+
+    public Integer getCrashTime() {
+        return crashTime;
+    }
+
+    public GPSIMU getGpsimu() {
+        return gpsimu;
     }
 
     @Override

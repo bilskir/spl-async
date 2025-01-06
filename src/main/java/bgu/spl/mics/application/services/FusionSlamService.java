@@ -93,6 +93,10 @@ public class FusionSlamService extends MicroService {
         });
 
     }
+    
+    public FusionSlam getFusionSlam() {
+        return fusionSlam;
+    }
 
     @Override
     public String toString() { return "FusionSlamService{" + "fusionSlam=" + fusionSlam + ", sensorsCounter=" + sensorsCounter + ", crashTime=" + crashTime + ", serviceName='" + getName() + '\'' + '}'; }

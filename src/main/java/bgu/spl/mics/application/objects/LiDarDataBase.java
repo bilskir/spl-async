@@ -1,34 +1,29 @@
 package bgu.spl.mics.application.objects;
-import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * LiDarDataBase is a singleton class responsible for managing LiDAR data.
  * It provides access to cloud point data and other relevant information for tracked objects.
  */
 public class LiDarDataBase {
-    /**
-     * Returns the singleton instance of LiDarDataBase.
-     *
-     * @param filePath The path to the LiDAR data file.
-     * @return The singleton instance of LiDarDataBase.
-     */
 
     private static LiDarDataBase db = null;
-    private List<StampedCloudPoints> cloudPoints;
-    private static ReadWriteLock lock = new ReentrantReadWriteLock();;
+    private final CopyOnWriteArrayList<StampedCloudPoints> cloudPoints;
+    private static final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    // Use Gson to parse the filePath and add all the cloud points from the file to the list of cloudPoints
+    // Private constructor to load LiDAR data from file
     private LiDarDataBase(String filePath) {
-        this.cloudPoints = new LinkedList<>();
+        this.cloudPoints = new CopyOnWriteArrayList<>();
         Gson gson = new Gson();
         try (FileReader reader = new FileReader(filePath)) {
             Type listType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
@@ -42,8 +37,8 @@ public class LiDarDataBase {
             e.printStackTrace();
         }
     }
-    
-     /**
+
+    /**
      * Returns the singleton instance of LiDarDataBase.
      *
      * @param filePath The path to the LiDAR data file.
@@ -51,75 +46,60 @@ public class LiDarDataBase {
      */
     public static LiDarDataBase getInstance(String filePath) {
         lock.readLock().lock();
-        if (db == null) {
-            lock.readLock().unlock();
-            lock.writeLock().lock(); 
-            try {
-                if (db == null) { // Double-check locking
-                    db = new LiDarDataBase(filePath);
-                }
-            } finally {
-                lock.writeLock().unlock(); 
-            }
-            lock.readLock().lock();
-        }
-
         try {
+            if (db == null) {
+                lock.readLock().unlock();
+                lock.writeLock().lock();
+                try {
+                    if (db == null) {
+                        db = new LiDarDataBase(filePath);
+                    }
+                } finally {
+                    lock.writeLock().unlock();
+                }
+                lock.readLock().lock();
+            }
             return db;
         } finally {
-            lock.readLock().unlock(); 
+            lock.readLock().unlock();
         }
     }
-    
-     /**
+
+    /**
      * Returns the list of stamped cloud points.
      *
      * @return The list of stamped cloud points.
      */
     public List<StampedCloudPoints> getCloudPoints() {
-        lock.readLock().lock(); 
-        try{
-            return cloudPoints; 
-        } finally {
-            lock.readLock().unlock();
-        }
+        return cloudPoints;
     }
-    
-     /**
-     *  Removes a CloudPoint from the database.
+
+    /**
+     * Removes a CloudPoint from the database.
      *
      * @param object The detected object to remove.
-     * @param time The time stamp of the cloud point to remove.
+     * @param time   The time stamp of the cloud point to remove.
      */
     public void removeCloudPoint(DetectedObject object, int time) {
-        lock.writeLock().lock(); 
-        try {
-            for (StampedCloudPoints cp : cloudPoints) {
-                if (cp.getTime() == time && cp.getID().equals(object.getID())) {
-                    cloudPoints.remove(cp);
-                    break; 
-                }
+        for (StampedCloudPoints cp : cloudPoints) {
+            if (cp.getTime() == time && cp.getID().equals(object.getID())) {
+                cloudPoints.remove(cp);
+                break;
             }
-        } finally {
-            lock.writeLock().unlock();
         }
     }
 
-
-     /**
+    /**
      * Returns the size of the cloud points list.
      *
      * @return The size of the cloud points list.
      */
     public int getCloudPointsSize() {
-        lock.readLock().lock();
-        try {
-            return cloudPoints.size();
-        } finally {
-            lock.readLock().unlock();
-        }
+        return cloudPoints.size();
     }
-    
-    public String toString() { return "LiDarDataBase{cloudPoints=" + cloudPoints + "}"; }
 
+    @Override
+    public String toString() {
+        return "LiDarDataBase{cloudPoints=" + cloudPoints + "}";
+    }
 }

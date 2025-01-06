@@ -22,7 +22,7 @@ import java.util.LinkedList;
  */
 public abstract class MicroService implements Runnable {
 
-    MessageBus mb;
+    protected MessageBus mb;
     Dictionary<Class<? extends Message>,Callback<? extends Message>> callbacksMap;
     private boolean terminated = false;
     private final String name;
