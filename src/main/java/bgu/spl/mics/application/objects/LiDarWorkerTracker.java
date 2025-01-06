@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.objects;
 import java.util.List;
 
+import bgu.spl.mics.application.jsonClasses.OutputFile;
+
 import java.util.Iterator;
 
 import java.util.LinkedList;
@@ -64,6 +66,7 @@ public class LiDarWorkerTracker {
         for(StampedCloudPoints cp : dataBase.getCloudPoints()){
             if(cp.getTime() == time){
                 if(cp.getID() == "ERROR"){
+                    OutputFile.getInstance().setError("Detected an error");
                     return true;
                 }
             }

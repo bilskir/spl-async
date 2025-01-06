@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
+import bgu.spl.mics.application.jsonClasses.OutputFile;
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
 
 import java.io.FileReader;
@@ -113,9 +114,10 @@ public class Camera {
      */
     public boolean checkForError(int tick){
         for(DetectedObject object : stampsList.get(tick).getDetectedObjectsList()){
-           if(object.getID() == "ERROR"){
-               return true;
-           }
+            if(object.getID() == "ERROR"){
+                OutputFile.getInstance().setError(object.getDescription());   
+                return true;
+            }
         }
 
         return false;

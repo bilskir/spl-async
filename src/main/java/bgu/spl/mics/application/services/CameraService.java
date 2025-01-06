@@ -2,7 +2,7 @@ package bgu.spl.mics.application.services;
 
 import java.util.LinkedList;
 import java.util.List;
-
+import bgu.spl.mics.application.jsonClasses.OutputFile;
 import bgu.spl.mics.*;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
@@ -24,6 +24,8 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
 public class CameraService extends MicroService {
     private final Camera camera;
     private int crashTime;
+    OutputFile output = OutputFile.getInstance();
+    StampedDetectedObjects lastFrame;
 
     /*
      * Constructor for CameraService.
@@ -34,6 +36,7 @@ public class CameraService extends MicroService {
         super(camera.getCameraKey());
         this.camera = camera;
         this.crashTime = -1;
+        lastFrame = null;
     }
 
     /**
@@ -51,6 +54,7 @@ public class CameraService extends MicroService {
             if (index != -1) {
                 if (camera.checkForError(index)) {
                     camera.setStatus(STATUS.ERROR);
+                    output.setFaultySensor(getName());
                     sendBroadcast(new CrashedBroadcast(getName(), currentTick));
                     terminate();
                 } else {
@@ -60,6 +64,7 @@ public class CameraService extends MicroService {
                             currentTick);
                     if (camera.getEvent(currentTick) != null) {
                         Future<Boolean> f = sendEvent(camera.getEvent(currentTick));
+                        lastFrame = camera.getStampsList().get(index);
                     }
                 }
             }
@@ -86,7 +91,7 @@ public class CameraService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class, msg -> {
             System.out.println(this.getName() + "recieved that " + msg.getSenderName() + " crashed");
             camera.setStatus(STATUS.DOWN);
-            crashTime = msg.getCrashTime();
+            output.addCameraFrame(getName(), lastFrame);
             sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();
             // send log

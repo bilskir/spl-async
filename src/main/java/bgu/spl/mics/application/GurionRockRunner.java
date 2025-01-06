@@ -140,6 +140,7 @@ public class GurionRockRunner {
             }
 
             System.out.println("Simulation finished successfully.");
+        
 
         } catch (FileNotFoundException | InterruptedException e) {
             System.err.println("Configuration file not found: " + configurationPath);

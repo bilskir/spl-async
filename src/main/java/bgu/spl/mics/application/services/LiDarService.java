@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.jsonClasses.OutputFile;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
@@ -32,6 +33,9 @@ import bgu.spl.mics.application.objects.TrackedObject;
 public class LiDarService extends MicroService {
     private final LiDarWorkerTracker lidarWorker;
     private int crashTime;
+    OutputFile output = OutputFile.getInstance();
+    List<TrackedObject> lastFrame;
+
 
 
     /**
@@ -43,6 +47,7 @@ public class LiDarService extends MicroService {
         super("LiDarService" + LiDarWorkerTracker.getID());
         this.lidarWorker = LiDarWorkerTracker;        
         this.crashTime = -1;
+        lastFrame = null;
     }
 
     /**
@@ -66,7 +71,7 @@ public class LiDarService extends MicroService {
             else{
                 lidarWorker.setStatus(STATUS.ERROR);
                 complete(msg,false);
-                crashTime = msg.getTimeSent();
+                output.setFaultySensor(getName());
                 sendBroadcast(new CrashedBroadcast(getName(), msg.getTimeSent()));
                 terminate();
                 //send log
@@ -88,6 +93,7 @@ public class LiDarService extends MicroService {
             }
             if(trackedObjects.size() > 0){
                 sendEvent(new TrackedObjectsEvent(trackedObjects, currentTick));
+                lastFrame = new LinkedList<>(trackedObjects);
                 StatisticalFolder.getInstance().addNumTrackedObjects(trackedObjects.size());
             }
 
@@ -113,7 +119,7 @@ public class LiDarService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class, msg -> {
             System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " crashed");
             lidarWorker.setStatus(STATUS.DOWN);
-            crashTime = msg.getCrashTime();
+            output.addLiDarFrame(getName(),lastFrame);
             sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();  
             //send log          

@@ -5,6 +5,7 @@ import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.STATUS;
+import bgu.spl.mics.application.jsonClasses.OutputFile;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
@@ -64,7 +65,12 @@ public class PoseService extends MicroService {
 
          subscribeBroadcast(CrashedBroadcast.class, msg -> {
            System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got crashed.");
-           this.crashTime = msg.getCrashTime();
+           int crashTime = msg.getCrashTime();
+           for (Pose pose : gpsimu.getPoseList()) {
+                if (pose.getTime() <= crashTime) {
+                    OutputFile.getInstance().getPoses().add(pose);
+                }
+            }
            this.gpsimu.setStatus(STATUS.DOWN);
            this.terminate();
         });
