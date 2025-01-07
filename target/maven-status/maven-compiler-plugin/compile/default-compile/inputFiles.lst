@@ -26,6 +26,7 @@
 /workspaces/spl-ass2/src/main/java/bgu/spl/mics/application/objects/DetectedObject.java
 /workspaces/spl-ass2/src/main/java/bgu/spl/mics/application/services/CameraService.java
 /workspaces/spl-ass2/src/main/java/bgu/spl/mics/Message.java
+/workspaces/spl-ass2/src/main/java/bgu/spl/mics/application/jsonClasses/Stats.java
 /workspaces/spl-ass2/src/main/java/bgu/spl/mics/Broadcast.java
 /workspaces/spl-ass2/src/main/java/bgu/spl/mics/application/objects/StatisticalFolder.java
 /workspaces/spl-ass2/src/main/java/bgu/spl/mics/application/objects/FusionSlam.java
