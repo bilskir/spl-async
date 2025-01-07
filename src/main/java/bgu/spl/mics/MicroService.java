@@ -1,5 +1,7 @@
 package bgu.spl.mics;
-
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.LinkedList;
 /**
  * The MicroService is an abstract class that any micro-service in the system
  * must extend. The abstract MicroService class is responsible to get and
@@ -20,6 +22,8 @@ package bgu.spl.mics;
  */
 public abstract class MicroService implements Runnable {
 
+    protected MessageBus mb;
+    Dictionary<Class<? extends Message>,Callback<? extends Message>> callbacksMap;
     private boolean terminated = false;
     private final String name;
 
@@ -29,6 +33,8 @@ public abstract class MicroService implements Runnable {
      */
     public MicroService(String name) {
         this.name = name;
+        this.mb = MessageBusImpl.getInstance();
+        callbacksMap = new Hashtable<Class<? extends Message>,Callback<? extends Message>>();
     }
 
     /**
@@ -53,7 +59,8 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
-        //TODO: implement this.
+	    callbacksMap.put(type, callback);
+        mb.subscribeEvent(type, this);
     }
 
     /**
@@ -77,7 +84,8 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
-        //TODO: implement this.
+        callbacksMap.put(type, callback);
+        mb.subscribeBroadcast(type, this);
     }
 
     /**
@@ -93,8 +101,7 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        //TODO: implement this.
-        return null; //TODO: delete this line :)
+        return mb.sendEvent(e);
     }
 
     /**
@@ -104,7 +111,7 @@ public abstract class MicroService implements Runnable {
      * @param b The broadcast message to send
      */
     protected final void sendBroadcast(Broadcast b) {
-        //TODO: implement this.
+        mb.sendBroadcast(b);
     }
 
     /**
@@ -118,9 +125,11 @@ public abstract class MicroService implements Runnable {
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-        //TODO: implement this.
+        mb.complete(e, result);
     }
 
+
+    
     /**
      * this method is called once when the event loop starts.
      */
@@ -131,6 +140,7 @@ public abstract class MicroService implements Runnable {
      * message.
      */
     protected final void terminate() {
+        //System.out.println("MicroService: " + name + " ,got terminated");
         this.terminated = true;
     }
 
@@ -142,6 +152,10 @@ public abstract class MicroService implements Runnable {
         return name;
     }
 
+    private void register(){
+        mb.register(this);
+    }
+
     /**
      * The entry point of the micro-service. TODO: you must complete this code
      * otherwise you will end up in an infinite loop.
@@ -149,9 +163,24 @@ public abstract class MicroService implements Runnable {
     @Override
     public final void run() {
         initialize();
+        //System.out.println("MicroService: " + name + " ,got initialized");
+        this.register();
         while (!terminated) {
-            System.out.println("NOT IMPLEMENTED!!!"); //TODO: you should delete this line :)
+            
+           try {
+            Message m = mb.awaitMessage(this);
+            Callback<Message> callback = (Callback<Message>)callbacksMap.get(m.getClass());
+            callback.call(m);
+
+           } catch (InterruptedException e) {
+            this.terminate();
+           }
         }
     }
+
+    // each micro service has his own thread + operates message loop in a pattern
+    // pattern - each iteration, fetch messag from queue and process
+    // dont nblock for a long time unless there are no messages for it 
+
 
 }

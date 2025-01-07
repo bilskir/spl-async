@@ -1,12 +1,27 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.StartSimulationEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.StatisticalFolder;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * TimeService acts as the global timer for the system, broadcasting TickBroadcast messages
  * at regular intervals and controlling the simulation's duration.
  */
 public class TimeService extends MicroService {
+
+    private final long tickTime;
+    private final int duration;
+    private int currentTick;
+    private volatile boolean running;
+    private final ExecutorService executor;
 
     /**
      * Constructor for TimeService.
@@ -15,8 +30,12 @@ public class TimeService extends MicroService {
      * @param Duration  The total number of ticks before the service terminates.
      */
     public TimeService(int TickTime, int Duration) {
-        super("Change_This_Name");
-        // TODO Implement this
+        super("TimeService");
+        this.tickTime = TickTime;
+        this.duration = Duration;
+        this.currentTick = 0;
+        this.running = true;
+        this.executor = Executors.newSingleThreadExecutor();
     }
 
     /**
@@ -25,6 +44,56 @@ public class TimeService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // TODO Implement this
+        this.subscribeEvent(StartSimulationEvent.class, (msg) -> {
+            System.out.println("Simulation Started!");
+            executor.submit(this::runTickLoop);
+        });
+    
+        // Listen for CrashedBroadcast
+        this.subscribeBroadcast(CrashedBroadcast.class, (msg) -> {
+            //System.out.println(this.getName() + " received that " + msg.getSenderName() + " crashed");
+            stopTickLoop();
+        });
+    
+        // Listen for TerminatedBroadcast
+        this.subscribeBroadcast(TerminatedBroadcast.class, (msg) -> {
+            //System.out.println(this.getName() + " received that " + msg.getSenderName() + " terminated");
+            if (msg.getSenderName().contains("FusionSlamService") | msg.getSenderName().contains(getName())) {
+                stopTickLoop();
+            }
+        });
+    }
+    
+    public int getDuration() {
+        return duration;
+    }
+    public long getTickTime() {
+        return tickTime;
+    }
+
+    private void runTickLoop() {
+        while (currentTick < duration && running) {
+            currentTick++;
+            System.out.println("Tick " + currentTick);
+            StatisticalFolder.getInstance().addSystemRuntime(1);
+            sendBroadcast(new TickBroadcast(duration, currentTick));
+    
+            try {
+                Thread.sleep(TimeUnit.SECONDS.toMillis(tickTime));
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+        sendBroadcast(new TerminatedBroadcast(this.getName()));
+        this.terminate();
+    }
+    
+
+    /**
+     * Stops the tick loop.
+     */
+    private void stopTickLoop() {
+        running = false;
+        executor.shutdownNow();
     }
 }

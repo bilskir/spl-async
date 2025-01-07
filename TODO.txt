@@ -1,0 +1,16 @@
+Questions for private lesson 
+
+1. Main Program - whats the flow there? (we didn't parse the jsons yet)
+2. Timing - Review and check if we did it alright? - if we have a crash in once specific sensor, do we expect it to send the crash at the exact time + frequency? .
+can other services process it at a later time? shouldn't it be an issue?
+3. Logs - StatisticalFolder, crashLogs and error handling.
+4. Tests in JUnit
+
+Tests in JUnit
+
+Tasks for tmw - 
+Tests in JUnit
+
+
+LastFrame
+Tests

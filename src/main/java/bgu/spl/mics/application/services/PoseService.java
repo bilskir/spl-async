@@ -1,12 +1,25 @@
 package bgu.spl.mics.application.services;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.STATUS;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.PoseEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
 
 /**
  * PoseService is responsible for maintaining the robot's current pose (position and orientation)
  * and broadcasting PoseEvents at every tick.
  */
 public class PoseService extends MicroService {
+    private GPSIMU gpsimu;
+    private Integer crashTime;
+    private List<Pose> poseList;
 
     /**
      * Constructor for PoseService.
@@ -14,8 +27,10 @@ public class PoseService extends MicroService {
      * @param gpsimu The GPSIMU object that provides the robot's pose data.
      */
     public PoseService(GPSIMU gpsimu) {
-        super("Change_This_Name");
-        // TODO Implement this
+        super("Pose Service");
+        this.gpsimu = gpsimu;
+        crashTime = -1;
+        poseList = new LinkedList<>();
     }
 
     /**
@@ -24,6 +39,58 @@ public class PoseService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // TODO Implement this
+        subscribeBroadcast(TickBroadcast.class, msg -> {
+            int currentTick = msg.getTick();
+            gpsimu.setCurrentTick(currentTick);
+
+            for (Pose pose : gpsimu.getPoseList()) {
+                if (pose.getTime() == currentTick) {
+                    sendEvent(new PoseEvent(pose));
+                    poseList.add(pose);
+                    gpsimu.getPoseList().remove(pose);
+                    break;
+                }
+            }
+            if(gpsimu.getPoseList().isEmpty()){
+                this.gpsimu.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                this.terminate();
+            }
+        });
+        
+        subscribeBroadcast(TerminatedBroadcast.class, msg -> {
+            //System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got terminated.");
+            if (msg.getSenderName() == "TimeService") {
+                this.gpsimu.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                this.terminate();
+                // log
+            }
+        });
+
+         subscribeBroadcast(CrashedBroadcast.class, msg -> {
+           //System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got crashed.");
+           this.crashTime = msg.getCrashTime();
+           this.gpsimu.setStatus(STATUS.DOWN);
+           this.terminate();
+        });
+        
+    }
+
+    public List<Pose> getPoseList() {
+        return poseList;
+    }
+
+    public Integer getCrashTime() {
+        return crashTime;
+    }
+
+    public GPSIMU getGpsimu() {
+        return gpsimu;
+    }
+
+    @Override
+    public String toString(){
+        return gpsimu.toString();
     }
 }

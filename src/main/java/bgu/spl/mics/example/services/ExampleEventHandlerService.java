@@ -32,7 +32,7 @@ public class ExampleEventHandlerService extends MicroService {
         subscribeEvent(ExampleEvent.class, ev -> {
             mbt--;
             System.out.println("Event Handler " + getName() + " got a new event from " + ev.getSenderName() + "! (mbt: " + mbt + ")");
-            complete(ev, "Hello from " + getName());
+            complete(ev, ev.getSenderName());
             if (mbt == 0) {
                 System.out.println("Event Handler " + getName() + " terminating.");
                 terminate();
