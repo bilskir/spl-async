@@ -69,7 +69,8 @@ public class TimeService extends MicroService {
      */
     private void runTickLoop() {
         while (currentTick < duration && running) {
-            currentTick++;
+            System.out.println("Current tick: " + currentTick);
+            currentTick ++;
             StatisticalFolder.getInstance().addSystemRuntime(1);
             sendBroadcast(new TickBroadcast(duration, currentTick));
 

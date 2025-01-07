@@ -49,19 +49,31 @@ public class StatisticalFolder {
 
     // Methods to increment counters
     public void addNumDetectedObjects(int num) {
-        System.out.println("Adding detected objects: " + num);
-        numDetectedObjects.addAndGet(num);
+        int oldValue;
+        do {
+            oldValue = getNumDetectedObjects();
+        } while (!numDetectedObjects.compareAndSet(oldValue, oldValue + num));
     }
 
     public void addNumLandmarks(int num) {
-        numLandmarks.addAndGet(num);
+        int oldValue;
+        do {
+            oldValue = getNumLandmarks();
+        } while (!numLandmarks.compareAndSet(oldValue, oldValue + num));
     }
 
     public void addSystemRuntime(int num) {
-        systemRuntime.addAndGet(num);
+        int oldValue; 
+        do{
+            oldValue = getSystemRuntime();
+        }
+        while(!systemRuntime.weakCompareAndSet(oldValue, oldValue + num));
     }
 
     public void addNumTrackedObjects(int num) {
-        numTrackedObjects.addAndGet(num);
+        int oldValue;
+        do {
+            oldValue = getNumTrackedObjects();
+        } while (!numTrackedObjects.compareAndSet(oldValue, oldValue + num));
     }
 }

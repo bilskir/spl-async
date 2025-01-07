@@ -51,14 +51,7 @@ public class CameraService extends MicroService {
             int currentTick = msg.getTick();
             System.out.println(this.getName() + " recieved tick " + currentTick);
             int index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
-            // int index = -1;
-            // for (int i = 0; i < camera.getStampsList().size(); i++) {
-            //     if (camera.getStampsList().get(i).getTime() == currentTick) {
-            //         index = i;
-            //         System.err.println(i);
-            //         break;
-            //     }
-            // }
+
             if (index != -1) {
                 if (camera.checkForError(index)) {
                     camera.setStatus(STATUS.ERROR);
@@ -74,7 +67,8 @@ public class CameraService extends MicroService {
                         Future<Boolean> f = sendEvent(camera.getEvent(currentTick)); 
                         StampedDetectedObjects object = camera.getEvent(currentTick).getStampedDetectedObjects();
                         camera.setLastFrame(object);
-                        StatisticalFolder.getInstance().addNumDetectedObjects(camera.getStampsList().get(index).getDetectedObjectsList().size());
+                        int detectedObjectsCounter = camera.getStampsList().get(index).getDetectedObjectsList().size();
+                        StatisticalFolder.getInstance().addNumDetectedObjects(detectedObjectsCounter);
                     }
                 }
             }
