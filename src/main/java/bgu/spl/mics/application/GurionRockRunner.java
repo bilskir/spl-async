@@ -171,7 +171,6 @@ public class GurionRockRunner {
                     isError = true;
                     json.addProperty("error", cs.getCamera().getErrorDescription());
                     json.addProperty("faultySensor", "Camera" + cs.getCamera().getID());
-                    break;
                 }
 
             }

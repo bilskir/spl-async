@@ -50,10 +50,18 @@ public class CameraService extends MicroService {
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, msg -> {
             int currentTick = msg.getTick();
+          
 
+
+            if (camera.getEvent(currentTick) != null) {
+                
+            }
             
+            
+            int index = -1;
             //System.out.println(this.getName() + " recieved tick " + currentTick);
-            int index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
+            
+            index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
 
             if (index != -1) {
                 if (camera.checkForError(index)) {
@@ -61,21 +69,16 @@ public class CameraService extends MicroService {
                     sendBroadcast(new CrashedBroadcast(getName(), currentTick));
                     terminate();
                 } else {
-                    //numberOfObjects += camera.getStampsList().get(index).getDetectedObjectsList().size();
-                    //System.out.println(camera.getStampsList().get(index).getDetectedObjectsList().size());
-                    
-                    camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick),
-                    currentTick);
-                    if (camera.getEvent(currentTick) != null) {
+                    camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick), currentTick);
 
-                        int counter = camera.getEvent(currentTick).getStampedDetectedObjects().getDetectedObjectsList().size();
-                        Future<Boolean> f = sendEvent(camera.getEvent(currentTick)); 
-                        StatisticalFolder.getInstance().addNumDetectedObjects(counter);
+                    if (camera.getEvent(currentTick) != null) {
                         StampedDetectedObjects object = camera.getEvent(currentTick).getStampedDetectedObjects();
                         camera.setLastFrame(object);
-                        
-                        //System.out.println("detectedObjectsCounter is: " + detectedObjectsCounter);
-                        //int detectedObjectsCounter = camera.getStampsList().get(index).getDetectedObjectsList().size();
+
+
+                        int counter = camera.getEvent(currentTick).getStampedDetectedObjects().getDetectedObjectsList().size();
+                        StatisticalFolder.getInstance().addNumDetectedObjects(counter);
+                        Future<Boolean> f = sendEvent(camera.getEvent(currentTick)); 
                     }
                 }
             }
@@ -104,6 +107,7 @@ public class CameraService extends MicroService {
             camera.setStatus(STATUS.DOWN);
             crashTime = msg.getCrashTime();
             sendBroadcast(new TerminatedBroadcast(getName()));
+
             terminate();
             // send log
         });
