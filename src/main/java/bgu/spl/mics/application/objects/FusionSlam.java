@@ -160,7 +160,7 @@ public class FusionSlam {
      * @param pose    the robot's pose containing global position and orientation
      * @return a double array containing the global x and y coordinates
      */
-    private double[] transformToGlobal(double localX, double localY, Pose pose) {
+    public double[] transformToGlobal(double localX, double localY, Pose pose) {
         double yawRad = Math.toRadians(pose.getYaw());
         double cosYaw = Math.cos(yawRad);
         double sinYaw = Math.sin(yawRad);

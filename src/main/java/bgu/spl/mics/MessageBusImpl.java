@@ -32,6 +32,10 @@ public class MessageBusImpl implements MessageBus {
 		return mbInstance;		
 	}
 
+	public int getRegisterCount() {
+		return msQueues.size();
+	}
+
 	public void setLatch(CountDownLatch latch) {
 		this.latch = latch;
 	}
