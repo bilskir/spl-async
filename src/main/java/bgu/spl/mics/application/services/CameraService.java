@@ -53,9 +53,6 @@ public class CameraService extends MicroService {
           
 
 
-            if (camera.getEvent(currentTick) != null) {
-                
-            }
             
             
             int index = -1;

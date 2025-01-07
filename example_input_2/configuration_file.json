@@ -3,7 +3,7 @@
     "CamerasConfigurations":[
       {
         "id": 1,
-        "frequency": 1,
+        "frequency": 4,
         "camera_key": "camera1"
       },{
         "id": 2,

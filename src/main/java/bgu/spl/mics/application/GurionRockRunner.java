@@ -206,7 +206,7 @@ public class GurionRockRunner {
             json.add("statistics", gson.toJsonTree(stats));
 
             // Write the output to the output file
-            try (FileWriter file = new FileWriter(!isError ? "output_file.json" : "OutputError.json" )) {
+            try (FileWriter file = new FileWriter(configurationPath.replace("/configuration_file.json", "") + (!isError ? "/output_file.json" : "/OutputError.json" ))) {
                 Gson gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
                 gsonBuilder.toJson(json, file);
                 System.out.println("Output written to output_data.json successfully.");
