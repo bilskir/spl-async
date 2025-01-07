@@ -1,127 +1,9 @@
 {
-  "error": "Camera Disconnected",
-  "faultySensor": "Camera1",
-  "lastCamerasFrame": {
-    "Camera1": {
-      "time": 12,
-      "detectedObjects": [
-        {
-          "id": "Wall_3",
-          "description": "Wall"
-        }
-      ]
-    }
-  },
-  "lastLiDarWorkerTrackersFrame": {
-    "LiDarWorkerTracker1": [
-      {
-        "ID": "Wall_3",
-        "time": 12,
-        "description": "Wall",
-        "coordinates": [
-          {
-            "x": 3.1,
-            "y": -0.4
-          },
-          {
-            "x": 3.2,
-            "y": -0.2
-          }
-        ]
-      }
-    ]
-  },
-  "poses": [
-    {
-      "time": 1,
-      "x": 0.0,
-      "y": 0.0,
-      "yaw": 0.0
-    },
-    {
-      "time": 2,
-      "x": -3.2076,
-      "y": 0.0755,
-      "yaw": -87.48
-    },
-    {
-      "time": 3,
-      "x": -5.7074,
-      "y": 0.1484,
-      "yaw": -92.68
-    },
-    {
-      "time": 4,
-      "x": -4.953,
-      "y": 1.3106,
-      "yaw": 144.06
-    },
-    {
-      "time": 5,
-      "x": -4.817,
-      "y": 2.8094,
-      "yaw": 132.57
-    },
-    {
-      "time": 6,
-      "x": -3.16,
-      "y": 3.1058,
-      "yaw": -28.08
-    },
-    {
-      "time": 7,
-      "x": -2.366,
-      "y": 0.9327,
-      "yaw": -28.08
-    },
-    {
-      "time": 8,
-      "x": -1.118,
-      "y": 2.1373,
-      "yaw": 22.98
-    },
-    {
-      "time": 9,
-      "x": -0.436,
-      "y": 2.8818,
-      "yaw": 38.85
-    },
-    {
-      "time": 10,
-      "x": 0.0,
-      "y": 3.6,
-      "yaw": 57.3
-    },
-    {
-      "time": 11,
-      "x": 0.5,
-      "y": 4.4,
-      "yaw": 68.76
-    },
-    {
-      "time": 12,
-      "x": 1.2,
-      "y": 5.1,
-      "yaw": 85.95
-    },
-    {
-      "time": 13,
-      "x": 2.0,
-      "y": 5.8,
-      "yaw": 103.09
-    },
-    {
-      "time": 14,
-      "x": 3.0,
-      "y": 6.3,
-      "yaw": 120.35
-    }
-  ],
   "statistics": {
-    "systemRuntime": 14,
-    "numDetectedObjects": 36,
-    "numTrackedObjects": 9,
-    "numLandmarks": 9,
+    "systemRuntime": 30,
+    "numDetectedObjects": 52,
+    "numTrackedObjects": 13,
+    "numLandmarks": 13,
     "lanmdarks": [
       {
         "ID": "Wall_1",
@@ -246,6 +128,62 @@
           {
             "x": 1.6255071312110188,
             "y": 8.277883433314525
+          }
+        ]
+      },
+      {
+        "ID": "Wall_5",
+        "description": "Wall",
+        "coordinates": [
+          {
+            "x": 5.681966060130756,
+            "y": 3.698643227089406
+          },
+          {
+            "x": 5.818789641664278,
+            "y": 3.6628758182324637
+          }
+        ]
+      },
+      {
+        "ID": "Wall_4",
+        "description": "Wall",
+        "coordinates": [
+          {
+            "x": 9.344959745829179,
+            "y": 8.73501920749866
+          },
+          {
+            "x": 5.817538688133635,
+            "y": 11.21237680819462
+          }
+        ]
+      },
+      {
+        "ID": "Chair_Base_1",
+        "description": "Chair Base",
+        "coordinates": [
+          {
+            "x": 6.043574657643641,
+            "y": 8.884533707546414
+          },
+          {
+            "x": 6.261165061333479,
+            "y": 8.59703689674307
+          }
+        ]
+      },
+      {
+        "ID": "Circular_Base_1",
+        "description": "Circular Base",
+        "coordinates": [
+          {
+            "x": 9.563722035995125,
+            "y": 9.54164893992224
+          },
+          {
+            "x": 9.700027169503304,
+            "y": 9.943421152225826
           }
         ]
       }

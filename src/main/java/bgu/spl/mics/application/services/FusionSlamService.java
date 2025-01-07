@@ -74,7 +74,7 @@ public class FusionSlamService extends MicroService {
                 //send log
             }
 
-            else if(msg.getSenderName().contains("LiDARService") || msg.getSenderName().contains("CameraService") || msg.getSenderName().contains("PoseService")){
+            else if(msg.getSenderName().contains("LiDarService") || msg.getSenderName().contains("CameraService") || msg.getSenderName().contains("PoseService")){
                 sensorsCounter--;
                 if(sensorsCounter == 0){
                     sendBroadcast(new TerminatedBroadcast(this.getName()));
