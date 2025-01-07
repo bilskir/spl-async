@@ -91,6 +91,7 @@ public class Camera {
 
     public synchronized void setLastFrame(StampedDetectedObjects lastFrame) {
         this.lastFrame = new StampedDetectedObjects(lastFrame.getTime(),lastFrame.getDetectedObjectsList());
+
     }
 
     public synchronized StampedDetectedObjects getLastFrame() {

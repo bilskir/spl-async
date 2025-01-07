@@ -86,37 +86,29 @@ public class MessageBusImpl implements MessageBus {
 
 	
 	@Override
-	public <T> Future<T> sendEvent(Event<T> e) {
-    Queue<MicroService> subscribers = eventMap.get(e.getClass());
-    if (subscribers == null || subscribers.isEmpty()) {
-        System.out.println("No subscribers for event: " + e.getClass().getSimpleName());
-        return null;
-    }
-
-    MicroService m;
-    synchronized (e.getClass()) {
-        m = subscribers.poll();
-        if (m != null) {
-            subscribers.add(m);
-        } else {
-            System.out.println("No microservice available to handle event: " + e.getClass().getSimpleName());
-            return null;
-        }
-    }
-
-    Future<T> f = new Future<>();
-    eventFutures.put(e, f);
-
-    BlockingQueue<Message> queue = msQueues.get(m);
-    if (queue == null) {
-        System.out.println("MicroService queue is null for: " + m.getName());
-        return null;
-    }
-
-    queue.add(e);
-    // System.out.println("Event sent to: " + m.getName() + ", Event: " + e.getClass().getSimpleName());
-    return f;
-}
+	public synchronized <T> Future<T> sendEvent(Event<T> e) {
+		Queue<MicroService> subscribers = eventMap.get(e.getClass());
+		if (subscribers == null || subscribers.isEmpty()) {
+			return null;
+		}
+	
+		MicroService m;
+		synchronized (subscribers) {
+			m = subscribers.poll();
+			if (m != null) {
+				subscribers.add(m);
+			}
+		}
+	
+		Future<T> f = new Future<>();
+		eventFutures.put(e, f);
+	
+		BlockingQueue<Message> queue = msQueues.get(m);
+		if (queue != null) {
+			queue.add(e);
+		}
+		return f;
+	}
 
 
 	@Override

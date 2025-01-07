@@ -52,46 +52,34 @@ public class FusionSlamService extends MicroService {
             Pose pose = msg.getCurrentPose();
             fusionSlam.addPose(pose);
         });
-
+    
         subscribeEvent(TrackedObjectsEvent.class, msg -> {
             LinkedList<TrackedObject> trackedObjects = msg.getTrackedObjects();
-            for(TrackedObject trackedObject : trackedObjects){
+            for (TrackedObject trackedObject : trackedObjects) {
                 fusionSlam.addTrackedObject(trackedObject);
             }
         });
-
-
+    
         subscribeBroadcast(TickBroadcast.class, msg -> {
             int currentTick = msg.getTick();
             fusionSlam.calculateMap(currentTick);
         });
-
+    
         subscribeBroadcast(TerminatedBroadcast.class, msg -> {
-            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " terminated");
-            if(msg.getSenderName() == "TimeService"){
+            System.out.println(this.getName() + " received that " + msg.getSenderName() + " terminated");
+            sensorsCounter--;
+            if (sensorsCounter == 0) {
                 sendBroadcast(new TerminatedBroadcast(this.getName()));
                 terminate();
-                //send log
-            }
-
-            else if(msg.getSenderName().contains("LiDarService") || msg.getSenderName().contains("CameraService") || msg.getSenderName().contains("PoseService")){
-                sensorsCounter--;
-                if(sensorsCounter == 0){
-                    sendBroadcast(new TerminatedBroadcast(this.getName()));
-                    terminate();
-                    //send log
-                }
             }
         });
-
+    
         subscribeBroadcast(CrashedBroadcast.class, msg -> {
-            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " crashed");
+            System.out.println(this.getName() + " received that " + msg.getSenderName() + " crashed");
             this.crashTime = msg.getCrashTime();
             sendBroadcast(new TerminatedBroadcast(this.getName()));
             terminate();
-            //send log
         });
-
     }
     
     public FusionSlam getFusionSlam() {

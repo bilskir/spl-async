@@ -123,35 +123,34 @@ public class FusionSlam {
     public void calculatePosition(TrackedObject object, Pose pose) {
         // List to hold transformed global coordinates
         List<CloudPoint> globalCoordinates = new LinkedList<>();
-
+    
         // Transform each coordinate of the tracked object
         for (CloudPoint localPoint : object.getCoordinates()) {
             double[] global = transformToGlobal(localPoint.getX(), localPoint.getY(), pose);
             globalCoordinates.add(new CloudPoint(global[0], global[1]));
         }
-
-        for(LandMark landmark : landmarks){
-            // If landmark already exists, update its coordinates
-            if(landmark.getID() == object.getID()){
-                for(int i = 0; i < landmark.getCoordinates().size(); i ++){
-                    double prevX = landmark.getCoordinates().get(i).getX();
-                    double prevY = landmark.getCoordinates().get(i).getY();
-                    double newX = globalCoordinates.get(i).getX();
-                    double newY = globalCoordinates.get(i).getY();
-
-                    landmark.getCoordinates().get(i).setX((prevX + newX) / 2);
-                    landmark.getCoordinates().get(i).setY((prevY + newY) / 2);
+    
+        // Check if a landmark with the same ID already exists
+        for (LandMark landmark : landmarks) {
+            if (landmark.getID().equals(object.getID())) {
+                // Merge coordinates by averaging
+                List<CloudPoint> existingCoordinates = landmark.getCoordinates();
+                for (int i = 0; i < existingCoordinates.size(); i++) {
+                    double newX = (existingCoordinates.get(i).getX() + globalCoordinates.get(i).getX()) / 2;
+                    double newY = (existingCoordinates.get(i).getY() + globalCoordinates.get(i).getY()) / 2;
+                    existingCoordinates.get(i).setX(newX);
+                    existingCoordinates.get(i).setY(newY);
                 }
-
-                return;
+                return;  // Exit after merging
             }
         }
-
-        // If landmark does not exist, create a new one
+    
+        // If the landmark is new, add it
         LandMark newLandmark = new LandMark(object.getID(), object.getDescription(), globalCoordinates);
         landmarks.add(newLandmark);
         StatisticalFolder.getInstance().addNumLandmarks(1);
     }
+    
 
     /**
      * Transforms local coordinates to global coordinates based on a given pose.
