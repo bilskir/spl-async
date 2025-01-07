@@ -59,7 +59,7 @@ public class PoseService extends MicroService {
         });
         
         subscribeBroadcast(TerminatedBroadcast.class, msg -> {
-            System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got terminated.");
+            //System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got terminated.");
             if (msg.getSenderName() == "TimeService") {
                 this.gpsimu.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
@@ -69,7 +69,7 @@ public class PoseService extends MicroService {
         });
 
          subscribeBroadcast(CrashedBroadcast.class, msg -> {
-           System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got crashed.");
+           //System.out.println(this.getName() +  " recived that " + msg.getSenderName() + " got crashed.");
            this.crashTime = msg.getCrashTime();
            this.gpsimu.setStatus(STATUS.DOWN);
            this.terminate();

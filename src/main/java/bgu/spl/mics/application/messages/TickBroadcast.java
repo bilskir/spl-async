@@ -12,7 +12,6 @@ public class TickBroadcast implements Broadcast {
         this.tick = tick;
     }
 
-
     public int getDuration() {
         return duration;
     }

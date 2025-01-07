@@ -65,7 +65,7 @@ public class MessageBusImpl implements MessageBus {
 			f.resolve(result);
 			eventFutures.remove(e); // The microservice has a pointer to the future so it wont be collected by the garbage collector
 		} catch (Exception ex) {
-			System.out.println("no such Event!");
+			//System.out.println("no such Event!");
 
 		}
 	}
@@ -117,7 +117,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void register(MicroService m) {
-		System.out.println("MicroService: " + m.getName() + "got registered");
+		//System.out.println("MicroService: " + m.getName() + "got registered");
 		msQueues.put(m, new LinkedBlockingQueue<Message>());
 		if (latch != null) {
 			latch.countDown();
