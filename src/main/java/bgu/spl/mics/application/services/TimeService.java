@@ -43,50 +43,43 @@ public class TimeService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // Start the simulation in a separate thread
         this.subscribeEvent(StartSimulationEvent.class, (msg) -> {
             System.out.println("Simulation Started!");
-            executor.submit(() -> runTickLoop());
+            executor.submit(this::runTickLoop);
         });
-
+    
         // Listen for CrashedBroadcast
         this.subscribeBroadcast(CrashedBroadcast.class, (msg) -> {
             System.out.println(this.getName() + " received that " + msg.getSenderName() + " crashed");
             stopTickLoop();
         });
-
+    
         // Listen for TerminatedBroadcast
         this.subscribeBroadcast(TerminatedBroadcast.class, (msg) -> {
             System.out.println(this.getName() + " received that " + msg.getSenderName() + " terminated");
-            if (msg.getSenderName().contains("FusionSlamService") || msg.getSenderName().contains(getName())) {
+            if (msg.getSenderName().contains("FusionSlamService")) {
                 stopTickLoop();
             }
         });
     }
-
-    /**
-     * Runs the tick loop in a separate thread.
-     */
+    
     private void runTickLoop() {
         while (currentTick < duration && running) {
             System.out.println("Current tick: " + currentTick);
-            currentTick ++;
+            currentTick++;
             StatisticalFolder.getInstance().addSystemRuntime(1);
             sendBroadcast(new TickBroadcast(duration, currentTick));
-
+    
             try {
                 Thread.sleep(tickTime);
             } catch (InterruptedException e) {
-                System.out.println("TimeService interrupted!");
                 break;
             }
         }
-
-
-        // Send termination signal when the tick loop ends
         sendBroadcast(new TerminatedBroadcast(this.getName()));
         this.terminate();
     }
+    
 
     /**
      * Stops the tick loop.

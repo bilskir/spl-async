@@ -67,8 +67,12 @@ public class CameraService extends MicroService {
                         Future<Boolean> f = sendEvent(camera.getEvent(currentTick)); 
                         StampedDetectedObjects object = camera.getEvent(currentTick).getStampedDetectedObjects();
                         camera.setLastFrame(object);
-                        int detectedObjectsCounter = camera.getStampsList().get(index).getDetectedObjectsList().size();
-                        StatisticalFolder.getInstance().addNumDetectedObjects(detectedObjectsCounter);
+                    
+                        if (f.get() && currentTick == camera.getStampsList().get(index).getTime()) {
+                            int detectedObjectsCounter = camera.getStampsList().get(index).getDetectedObjectsList().size();
+                            System.out.println("detectedObjectsCounter is: " + detectedObjectsCounter);
+                            StatisticalFolder.getInstance().addNumDetectedObjects(detectedObjectsCounter);
+                        }
                     }
                 }
             }
