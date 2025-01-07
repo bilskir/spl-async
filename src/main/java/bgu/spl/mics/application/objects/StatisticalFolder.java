@@ -2,6 +2,8 @@ package bgu.spl.mics.application.objects;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import bgu.spl.mics.MicroService;
+
 public class StatisticalFolder {
     private static final StatisticalFolder instance = new StatisticalFolder();
 
@@ -21,12 +23,8 @@ public class StatisticalFolder {
         systemRuntime.addAndGet(runtime);
     }
 
-    public void addNumDetectedObjects(int num) {
-        synchronized (this) {
-            int oldValue = numDetectedObjects.get();
-            numDetectedObjects.set(oldValue + num);
-            System.out.println("numDetectedObjects has been called!");
-        }
+    public synchronized void addNumDetectedObjects(int num) {
+        numDetectedObjects.addAndGet(num);
     }
 
     public synchronized void addNumTrackedObjects(int count) {

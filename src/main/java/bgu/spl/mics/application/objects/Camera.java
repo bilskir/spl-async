@@ -89,12 +89,12 @@ public class Camera {
         return cameraKey;
     }
 
-    public synchronized void setLastFrame(StampedDetectedObjects lastFrame) {
+    public  void setLastFrame(StampedDetectedObjects lastFrame) {
         this.lastFrame = new StampedDetectedObjects(lastFrame.getTime(),lastFrame.getDetectedObjectsList());
 
     }
 
-    public synchronized StampedDetectedObjects getLastFrame() {
+    public StampedDetectedObjects getLastFrame() {
         return lastFrame;
     }
 
@@ -144,7 +144,6 @@ public class Camera {
      */
     public DetectObjectsEvent getEvent(int tick) {
         if (detectObjectsEvents[tick] != null) {
-            StatisticalFolder.getInstance().addNumDetectedObjects(detectObjectsEvents[tick].getStampedDetectedObjects().getDetectedObjectsList().size());
             return detectObjectsEvents[tick];
         }
         return null;

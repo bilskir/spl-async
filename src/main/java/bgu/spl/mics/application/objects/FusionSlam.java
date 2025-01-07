@@ -135,7 +135,7 @@ public class FusionSlam {
             if (landmark.getID().equals(object.getID())) {
                 // Merge coordinates by averaging
                 List<CloudPoint> existingCoordinates = landmark.getCoordinates();
-                for (int i = 0; i < existingCoordinates.size(); i++) {
+                for (int i = 0; i < Math.min(existingCoordinates.size(), globalCoordinates.size()); i++) {
                     double newX = (existingCoordinates.get(i).getX() + globalCoordinates.get(i).getX()) / 2;
                     double newY = (existingCoordinates.get(i).getY() + globalCoordinates.get(i).getY()) / 2;
                     existingCoordinates.get(i).setX(newX);
