@@ -80,7 +80,7 @@ public class CameraService extends MicroService {
                 }
             }
             if (currentTick >= camera.getCameraDuration()) {
-                System.out.println(this.getName() + " is done");
+                //System.out.println(this.getName() + " is done");
                 camera.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
@@ -90,7 +90,7 @@ public class CameraService extends MicroService {
         });
 
         subscribeBroadcast(TerminatedBroadcast.class, msg -> {
-            System.out.println(this.getName() + "recieved that " + msg.getSenderName() + " terminated");
+            //System.out.println(this.getName() + "recieved that " + msg.getSenderName() + " terminated");
             if (msg.getSenderName() == "TimeService") {
                 camera.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
@@ -100,7 +100,7 @@ public class CameraService extends MicroService {
         });
 
         subscribeBroadcast(CrashedBroadcast.class, msg -> {
-            System.out.println(this.getName() + "recieved that " + msg.getSenderName() + " crashed");
+            //System.out.println(this.getName() + "recieved that " + msg.getSenderName() + " crashed");
             camera.setStatus(STATUS.DOWN);
             crashTime = msg.getCrashTime();
             sendBroadcast(new TerminatedBroadcast(getName()));

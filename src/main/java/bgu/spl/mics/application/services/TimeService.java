@@ -51,13 +51,13 @@ public class TimeService extends MicroService {
     
         // Listen for CrashedBroadcast
         this.subscribeBroadcast(CrashedBroadcast.class, (msg) -> {
-            System.out.println(this.getName() + " received that " + msg.getSenderName() + " crashed");
+            //System.out.println(this.getName() + " received that " + msg.getSenderName() + " crashed");
             stopTickLoop();
         });
     
         // Listen for TerminatedBroadcast
         this.subscribeBroadcast(TerminatedBroadcast.class, (msg) -> {
-            System.out.println(this.getName() + " received that " + msg.getSenderName() + " terminated");
+            //System.out.println(this.getName() + " received that " + msg.getSenderName() + " terminated");
             if (msg.getSenderName().contains("FusionSlamService") | msg.getSenderName().contains(getName())) {
                 stopTickLoop();
             }
@@ -74,6 +74,7 @@ public class TimeService extends MicroService {
     private void runTickLoop() {
         while (currentTick < duration && running) {
             currentTick++;
+            System.out.println("Tick " + currentTick);
             StatisticalFolder.getInstance().addSystemRuntime(1);
             sendBroadcast(new TickBroadcast(duration, currentTick));
     

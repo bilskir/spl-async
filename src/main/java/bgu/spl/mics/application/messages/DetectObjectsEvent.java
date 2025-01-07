@@ -9,7 +9,6 @@ public class DetectObjectsEvent implements Event<Boolean> {
     private final StampedDetectedObjects objects;
     private final int timeSent;
     
-
     public DetectObjectsEvent(StampedDetectedObjects objects, int timeSent) {
         this.objects = objects;
         this.timeSent = timeSent;

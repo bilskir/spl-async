@@ -57,10 +57,7 @@ public class Camera {
     
         this.cameraDuration = stampsList.isEmpty() ? 0 : stampsList.get(stampsList.size() - 1).getTime() + frequency;
         this.detectObjectsEvents = new DetectObjectsEvent[cameraDuration + 1];
-       
     }
-
-
 
     public int getID(){
         return this.ID;
@@ -91,7 +88,7 @@ public class Camera {
     }
 
     public void setLastFrame(StampedDetectedObjects lastFrame) {
-        System.out.println(lastFrame);
+        //System.out.println(lastFrame);
         this.lastFrame = lastFrame;
     }
 

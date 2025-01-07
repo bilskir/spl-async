@@ -35,7 +35,7 @@ public class Future<T> {
 			try {
 				wait();
 			} catch (InterruptedException e) {
-				System.out.println("error");
+				//System.out.println("error");
 			}
 		}
 		return result;
@@ -74,7 +74,7 @@ public class Future<T> {
 			try {
 				wait(unit.toMillis(timeout));
 			} catch (Exception e) {
-				System.out.println("ERROR - ALIEN DETECTED");
+				//System.out.println("Error");
 			}
 		}
 		return result;

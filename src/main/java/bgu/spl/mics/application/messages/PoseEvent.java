@@ -11,7 +11,6 @@ public class PoseEvent implements Event<Void> {
 
     private final Pose currentPose;
     
-
     /**
      * Constructor for PoseEvent.
      *

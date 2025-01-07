@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -71,17 +73,18 @@ public class GurionRockRunner {
             return;
         }
 
-        String configurationPath = args[0];
+        String configurationPath = Paths.get(args[0]).getParent().toFile().getAbsolutePath();
+       
         Gson gson = new Gson();
         try {
-            Configuration configuration = gson.fromJson(new FileReader(configurationPath), Configuration.class);
+            Configuration configuration = gson.fromJson(new FileReader(args[0]), Configuration.class);
             System.out.println("Configuration parsed successfully.");
 
             // Use the configuration object to initialize system components
             // Example: System.out.println(configuration.getCameras().getCameraDatasPath());
-            String cameraPath = configuration.getCameras().getCameraDatasPath();
-            String LidarPath = configuration.getLidars().getLidarsDataPath();
-            String posePath = configuration.getPoseJsonFile();
+            String cameraPath = Paths.get(configurationPath,configuration.getCameras().getCameraDatasPath().replace("./","")).toString();
+            String LidarPath = Paths.get(configurationPath,configuration.getLidars().getLidarsDataPath().replace("./","")).toString();
+            String posePath = Paths.get(configurationPath,configuration.getPoseJsonFile().replace("./","")).toString();
             int tickTime = configuration.getTickTime();
             int duration = configuration.getDuration();
             int sensorsCounter = 0;

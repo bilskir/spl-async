@@ -103,7 +103,7 @@ public class LiDarService extends MicroService {
 
 
         subscribeBroadcast(TerminatedBroadcast.class, msg -> {
-            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " terminated");
+            //System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " terminated");
             if(msg.getSenderName() == "TimeService"){
                 lidarWorker.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
@@ -113,7 +113,7 @@ public class LiDarService extends MicroService {
         });
 
         subscribeBroadcast(CrashedBroadcast.class, msg -> {
-            System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " crashed");
+            //System.out.println(this.getName() + "recieved that " + msg.getSenderName() +  " crashed");
             lidarWorker.setStatus(STATUS.DOWN);
             crashTime = msg.getCrashTime();
             sendBroadcast(new TerminatedBroadcast(getName()));

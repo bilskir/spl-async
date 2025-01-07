@@ -31,7 +31,7 @@ public class LiDarDataBase {
             if (loadedPoints != null) {
                 cloudPoints.addAll(loadedPoints);
             }
-            System.out.println("LiDar data loaded successfully: " + cloudPoints.size() + " entries.");
+            //System.out.println("LiDar data loaded successfully: " + cloudPoints.size() + " entries.");
         } catch (IOException e) {
             System.err.println("Failed to load LiDar data from: " + filePath);
             e.printStackTrace();
