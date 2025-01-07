@@ -11,9 +11,6 @@ Tests in JUnit
 Tasks for tmw - 
 Tests in JUnit
 
-Issues that Ron found - 
-1. we didn't calculate the landmarks with the average part. 
-For example - we have 2 wall 4's, and together they result the right landmark, but we write them both before the calculation/delete of another landmark
 
-2. We don't stop the TimeService in runTickLoop - need to shutdownNow for it too if currentTick>= duration ?
-also, 
+LastFrame
+Tests

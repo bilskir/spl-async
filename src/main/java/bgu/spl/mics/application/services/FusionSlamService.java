@@ -68,6 +68,7 @@ public class FusionSlamService extends MicroService {
         subscribeBroadcast(TerminatedBroadcast.class, msg -> {
             System.out.println(this.getName() + " received that " + msg.getSenderName() + " terminated");
             sensorsCounter--;
+            System.out.println(sensorsCounter);
             if (sensorsCounter == 0) {
                 sendBroadcast(new TerminatedBroadcast(this.getName()));
                 terminate();
@@ -79,6 +80,7 @@ public class FusionSlamService extends MicroService {
             this.crashTime = msg.getCrashTime();
             sendBroadcast(new TerminatedBroadcast(this.getName()));
             terminate();
+            System.out.println(sensorsCounter);
         });
     }
     

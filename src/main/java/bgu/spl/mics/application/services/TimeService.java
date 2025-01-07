@@ -9,6 +9,7 @@ import bgu.spl.mics.application.objects.StatisticalFolder;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * TimeService acts as the global timer for the system, broadcasting TickBroadcast messages
@@ -57,12 +58,19 @@ public class TimeService extends MicroService {
         // Listen for TerminatedBroadcast
         this.subscribeBroadcast(TerminatedBroadcast.class, (msg) -> {
             System.out.println(this.getName() + " received that " + msg.getSenderName() + " terminated");
-            if (msg.getSenderName().contains("FusionSlamService")) {
+            if (msg.getSenderName().contains("FusionSlamService") | msg.getSenderName().contains(getName())) {
                 stopTickLoop();
             }
         });
     }
     
+    public int getDuration() {
+        return duration;
+    }
+    public long getTickTime() {
+        return tickTime;
+    }
+
     private void runTickLoop() {
         while (currentTick < duration && running) {
             System.out.println("Current tick: " + currentTick);
@@ -71,7 +79,7 @@ public class TimeService extends MicroService {
             sendBroadcast(new TickBroadcast(duration, currentTick));
     
             try {
-                Thread.sleep(tickTime);
+                Thread.sleep(TimeUnit.SECONDS.toMillis(tickTime));
             } catch (InterruptedException e) {
                 break;
             }

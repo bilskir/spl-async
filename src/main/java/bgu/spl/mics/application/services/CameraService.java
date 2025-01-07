@@ -37,6 +37,7 @@ public class CameraService extends MicroService {
         this.camera = camera;
         this.crashTime = -1;
         this.numberOfObjects = 0;
+        
     }
 
     /**
@@ -49,7 +50,9 @@ public class CameraService extends MicroService {
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, msg -> {
             int currentTick = msg.getTick();
-            System.out.println(this.getName() + " recieved tick " + currentTick);
+
+            
+            //System.out.println(this.getName() + " recieved tick " + currentTick);
             int index = binarySearch(0, camera.getStampsList().size() - 1, camera.getStampsList(), currentTick);
 
             if (index != -1) {
@@ -59,20 +62,20 @@ public class CameraService extends MicroService {
                     terminate();
                 } else {
                     //numberOfObjects += camera.getStampsList().get(index).getDetectedObjectsList().size();
-                    System.out.println(camera.getStampsList().get(index).getDetectedObjectsList().size());
+                    //System.out.println(camera.getStampsList().get(index).getDetectedObjectsList().size());
                     
                     camera.addEvent(new DetectObjectsEvent(camera.getStampsList().get(index), currentTick),
                     currentTick);
                     if (camera.getEvent(currentTick) != null) {
+
+                        int counter = camera.getEvent(currentTick).getStampedDetectedObjects().getDetectedObjectsList().size();
                         Future<Boolean> f = sendEvent(camera.getEvent(currentTick)); 
+                        StatisticalFolder.getInstance().addNumDetectedObjects(counter);
                         StampedDetectedObjects object = camera.getEvent(currentTick).getStampedDetectedObjects();
                         camera.setLastFrame(object);
-                    
-                        if (f.get() && currentTick == camera.getStampsList().get(index).getTime()) {
-                            int detectedObjectsCounter = camera.getStampsList().get(index).getDetectedObjectsList().size();
-                            System.out.println("detectedObjectsCounter is: " + detectedObjectsCounter);
-                            StatisticalFolder.getInstance().addNumDetectedObjects(detectedObjectsCounter);
-                        }
+                        
+                        //System.out.println("detectedObjectsCounter is: " + detectedObjectsCounter);
+                        //int detectedObjectsCounter = camera.getStampsList().get(index).getDetectedObjectsList().size();
                     }
                 }
             }

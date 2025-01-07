@@ -150,7 +150,7 @@ public class GurionRockRunner {
 
             // Await termination of all services
             executor.shutdown();
-            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+            if (!executor.awaitTermination(TimeUnit.SECONDS.toMillis(timeService.getDuration() * timeService.getTickTime()), TimeUnit.SECONDS)) {
                 System.out.println("Executor did not terminate in time. Forcing shutdown...");
                 executor.shutdownNow();
             }
